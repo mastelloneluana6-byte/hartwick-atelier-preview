@@ -1,0 +1,3636 @@
+// ==========================================================================
+// HARTWICK ATELIER — APPLICATION CONTROLLER
+// Launch-Ready Preview with:
+// - Phase 1 (§1 – §7) AND Phase 2 (§8.1 – §8.10) BOTH ACTIVE BY DEFAULT
+// - Explicit Brief Number Badges (§1 through §8.10 + Product #01–#66)
+// - One-click toggle to show/hide Brief Number Badges
+// ==========================================================================
+
+const SQS_CDN = "https://images.squarespace-cdn.com/content/v1/662ec4008fa24077e0d8b6b0/";
+
+const STATE = {
+  phase2Enabled: false,
+  showBriefBadges: false,
+  designConcept: "B", // "B" = Botanical Archive & Atelier (Warm Khadi + Interactive Dye Lab) | "A" = Architectural Gallery (Cool Chalk)
+  activeDyeLabIndex: 0,
+  glossaryCategoryFilter: "ALL",
+  activeAtelierStageIndex: 0,
+  currentView: "pdp",
+  currentCollection: "all-apparel",
+  techniqueFilter: "ALL",
+  currentProductHandle: "tribeca-matka-silk-emerald",
+  lastPdpHandle: "tribeca-matka-silk-emerald",
+  cameFromPdp: false,
+  activeGlossaryId: "02",
+  selectedSize: "S",
+  selectedImageIndex: 0,
+  currency: "EUR",
+  shippingRegion: "EU",
+  cart: [],
+  wishlist: ["tribeca-matka-silk-emerald", "palma-fresh-pink-cotton"]
+};
+
+// ==========================================================================
+// SHANNON BOTANICAL DYES — REAL HAND-PAINTED BOTANICAL DOTS & SWATCHES
+// Extracted directly from Shannon's PDFs (SH_CIRCLES_01, SH_MARIGOLD, SH_WALNUT, SH_POKEBERRY)
+// ==========================================================================
+const BOTANICAL_BLOTS = {
+  "marigold": {
+    name: "Marigold & Iron Vat",
+    lotCode: "VAT-MRG-01",
+    img: "assets/blots/dot_iron_rust.png",
+    swatch: "assets/blots/swatch_marigold.png"
+  },
+  "goldenrod": {
+    name: "Goldenrod & Alum Mordant",
+    lotCode: "VAT-GLD-02",
+    img: "assets/blots/dot_goldenrod.png",
+    swatch: "assets/blots/swatch_marigold.png"
+  },
+  "walnut": {
+    name: "Black Walnut & Ash",
+    lotCode: "VAT-WLN-03",
+    img: "assets/blots/dot_walnut.png",
+    swatch: "assets/blots/swatch_walnut.png"
+  },
+  "indigo": {
+    name: "Fermented Wild Indigo & Moss",
+    lotCode: "VAT-IND-04",
+    img: "assets/blots/dot_indigo_moss.png",
+    swatch: "assets/blots/dot_indigo_moss.png"
+  },
+  "pokeberry": {
+    name: "Pokeberry & Madder Root",
+    lotCode: "VAT-PKB-05",
+    img: "assets/blots/dot_apricot.png",
+    swatch: "assets/blots/swatch_pokeberry.png"
+  },
+  "emerald": {
+    name: "Wild Indigo & Pomegranate Rind",
+    lotCode: "VAT-EMR-06",
+    img: "assets/blots/dot_indigo_moss.png",
+    swatch: "assets/blots/dot_sand_speckle.png"
+  }
+};
+
+function renderBotanicalBlot(type = "marigold", size = 44) {
+  const b = BOTANICAL_BLOTS[type] || BOTANICAL_BLOTS["marigold"];
+  return `
+    <span class="botanical-blot-wrap" title="Shannon Botanical Dye: ${b.name}">
+      <img
+        src="${b.img}"
+        alt="${b.name}"
+        class="botanical-blot-svg"
+        style="width:${size}px;height:${size}px;object-fit:contain;mix-blend-mode:multiply"
+      />
+    </span>
+  `;
+}
+
+function setDesignConcept(concept) {
+  STATE.designConcept = concept;
+  document.body.classList.toggle("concept-a", concept === "A");
+  document.body.classList.toggle("concept-b", concept === "B");
+  const btnA = document.getElementById("concept-btn-a");
+  const btnB = document.getElementById("concept-btn-b");
+  if (btnA) btnA.classList.toggle("review-jump-btn--active", concept === "A");
+  if (btnB) btnB.classList.toggle("review-jump-btn--active", concept === "B");
+  renderApp();
+}
+
+function selectDyeLabSpecimen(idx) {
+  STATE.activeDyeLabIndex = idx;
+  renderApp();
+}
+
+function setGlossaryCategoryFilter(cat) {
+  STATE.glossaryCategoryFilter = cat;
+  renderApp();
+}
+
+function selectMasterDossierTechnique(id) {
+  STATE.activeGlossaryId = id;
+  renderApp();
+}
+
+function stepMasterDossierTechnique(delta) {
+  const idx = HERITAGE_GLOSSARY_LIST.findIndex(item => item.id === STATE.activeGlossaryId);
+  const nextIdx = (idx + delta + HERITAGE_GLOSSARY_LIST.length) % HERITAGE_GLOSSARY_LIST.length;
+  STATE.activeGlossaryId = HERITAGE_GLOSSARY_LIST[nextIdx].id;
+  renderApp();
+}
+
+function selectAtelierStage(idx) {
+  STATE.activeAtelierStageIndex = idx;
+  renderApp();
+}
+
+// ==========================================================================
+// 12 HERITAGE TECHNIQUES GLOSSARY (Matches Aloha Design Screenshots + Squarespace Copy)
+// ==========================================================================
+const HERITAGE_GLOSSARY_LIST = [
+  {
+    id: "01",
+    key: "khadi",
+    name: "Khadi",
+    summary: "HANDSPUN AND HANDWOVEN NATURAL-FIBRE CLOTH.",
+    blot: "marigold",
+    botanicalLabel: "Unbleached Cotton & Marigold Mordant",
+    paragraphs: [
+      "Khadi is made from handspun and handwoven natural fibers. From the harvest to the yarn to the weave, the material is made by hand without the use of electricity. It is a textile that holds the story of nature and sustainable economies, community and ancient craft.",
+      "Weavers in villages across South Asia have been producing Khadi yarn from hand-spun cotton and silk for millennia. Wearing Khadi has a different feeling than wearing industrially produced fabrics — khadi drapes and breathes with a supple softness in a rhythm that can only be created by skilled human hands. The feeling is truly luxurious."
+    ],
+    image: SQS_CDN + "3a6786b9-45ce-459e-83cb-4bee1d2e3554/184_HARTWICK_STYLE_FABRIC4R1A8940.jpg"
+  },
+  {
+    id: "02",
+    key: "hand-spun",
+    name: "Hand spun",
+    summary: "NATURAL FIBRES DRAWN OUT AND TWISTED INTO YARN.",
+    blot: "goldenrod",
+    botanicalLabel: "Goldenrod & Raw Silk Fibre",
+    paragraphs: [
+      "Natural fibers are drawn out by hand and twisted together on the traditional charkha spinning wheel to form a living yarn. Unlike high-tension industrial spinning, hand-spinning preserves the micro-air pockets and natural spring of cotton, linen, and wild Matka silk.",
+      "Every subtle variation in yarn thickness—known as a slub—records the touch and cadence of the master spinner's hand."
+    ],
+    image: SQS_CDN + "1761394286610-IZ46RMUKJAHY9K3G8K4Z/034_HARTWICK_HANDWOVEN_TRIBECA_SKIRT_SILK_AMMAN_SHIRT_LINEN_SILK.jpg"
+  },
+  {
+    id: "03",
+    key: "handwoven",
+    name: "Handwoven",
+    summary: "YARNS BROUGHT TOGETHER ON A HANDLOOM.",
+    blot: "walnut",
+    botanicalLabel: "Black Walnut & Loom Selvedge",
+    paragraphs: [
+      "Handspun yarns are interlaced on wooden pit looms and frame looms powered solely by the weaver's hands and feet. Without mechanical motors, the shuttle passes at a human pace, allowing the warp and weft to settle gently.",
+      "The resulting cloth possesses a true woven selvedge, remarkable longevity, and a fluid architectural drape that softens with every year of wear."
+    ],
+    image: SQS_CDN + "1761394348125-TQL5OWNVAINE40XD9OXN/007_HARTWICK_HANDWOVEN_TRIBECA_SKIRT_KHADI_TOKYO_SHIRT.jpg"
+  },
+  {
+    id: "04",
+    key: "block-print",
+    name: "Block printed by hand",
+    summary: "PATTERN BUILT BY HAND, LAYER BY LAYER, COLOUR BY COLOUR.",
+    blot: "pokeberry",
+    botanicalLabel: "Madder Root & Fermented Iron",
+    paragraphs: [
+      "In India, artisans have used hand carved wooden blocks to print on handwoven fabric for nearly four thousand years. Using hand carved wooden blocks, Master Printers print each colour, layer by layer using resist dyeing techniques.",
+      "Each piece requires a minimum of 16 processes, with the silk resting for at least a day between each step. Handwork naturally results in variations in colour and placement. We cherish these nuances for their human touch."
+    ],
+    image: SQS_CDN + "643566b4-c934-4030-922c-ec6f24a25e06/218_HARTWICK_FINESILK_LARGESQUARE_SCARF_NATURALDYE_BLOCKPRINT.jpg"
+  },
+  {
+    id: "05",
+    key: "wooden-blocks",
+    name: "Hand carved wooden blocks",
+    summary: "THE PATTERN CUT INTO WOOD, ONE BLOCK FOR EACH COLOUR.",
+    blot: "walnut",
+    botanicalLabel: "Seasoned Teakwood & Oil Cure",
+    paragraphs: [
+      "Each block print started as a tree, then a seasoned teakwood block, carved by hand with tiny chisels and mallets into sets of intricate relief patterns. A single motif requires a separate master outline block (Rekh) and multiple filler blocks (Datta) for each individual botanical shade.",
+      "Before touching cloth, newly carved blocks are cured in mustard or sesame oil for days so the wood grain never warps."
+    ],
+    image: SQS_CDN + "9fa64956-028e-4a2c-aae7-8ba0e194e764/088_HARTWICK_FINESILK_PETITSQUARE01_SCARF_NATURALDYE_BLOCKPRINT.jpg"
+  },
+  {
+    id: "06",
+    key: "natural-dye",
+    name: "Natural dye",
+    summary: "COLOUR DRAWN FROM PLANTS AND MINERALS.",
+    blot: "emerald",
+    botanicalLabel: "Wild Indigo, Pomegranate & Turmeric",
+    paragraphs: [
+      "Master Colorists use ancient methods to create natural dyes using indigenous plants and minerals including wild indigo, pomegranate bark and seeds, tamarind, turmeric, jaggery, ash, and fermented iron.",
+      "These artisanal dye vats rely on rare botanical knowledge and the natural cycles of sun, wind, and mineral water—yielding living colours with depth that synthetic pigments can never replicate."
+    ],
+    image: SQS_CDN + "0c0b1cbc-4c3e-43ad-b43d-1c2c4916289f/080_HARTWICK_OKANAGAN_ROBE_KALAMALKA_BLOCKPRINT.jpg"
+  },
+  {
+    id: "07",
+    key: "ajrakh",
+    name: "Ajrakh",
+    summary: "RESIST PRINTING, DYEING, WASHING AND TIME.",
+    blot: "indigo",
+    botanicalLabel: "Kutch Indigo & Myrobalan Resist",
+    paragraphs: [
+      "Practiced in Kutch and Barmer for generations, Ajrakh is a complex 16-to-20 step ritual of washing, myrobalan (harde) pre-treatment, natural gum and clay resist stamping, and repeated immersions in indigo and madder root vats.",
+      "Its geometric stars and architectural symmetries echo the night sky over the desert."
+    ],
+    image: SQS_CDN + "1761394438684-TA2MPGD3PKODZ9YQWDO3/002_HARTWICK_SAMARKAND_DRESS_NATURALDYE_BLACKMARBLEINLAY_BLOCKPRINT_LIMINAL_EMERALD_RUBY_AQUAMARINE_DIAMOND_DROPEARRINGS.jpg"
+  },
+  {
+    id: "08",
+    key: "ikat",
+    name: "Ikat",
+    summary: "YARNS TIED AND DYED BEFORE THEY ARE WOVEN.",
+    blot: "indigo",
+    botanicalLabel: "Resist-Bound Warp & Weft Yarn",
+    paragraphs: [
+      "Unlike surface printing, Ikat patterns are born inside the yarn itself before it ever touches the loom. Bundles of warp and weft threads are mathematically mapped, tightly bound with water-resistant bindings, and dyed in sequential natural vats.",
+      "When the bindings are untied and aligned on the handloom, the motif emerges with a signature feathered edge."
+    ],
+    image: SQS_CDN + "8b35627c-73f1-47cc-8e79-c94a0388f034/125_HARTWICK_HANDWOVEN_TOKYO_SHIRT_IKAT.jpg"
+  },
+  {
+    id: "09",
+    key: "gota-patti",
+    name: "Gota Patti",
+    summary: "SMALL PIECES OF RIBBON APPLIED AND STITCHED TO CLOTH.",
+    blot: "goldenrod",
+    botanicalLabel: "Jaipur Zari Ribbon Appliqué",
+    paragraphs: [
+      "Originating in the royal courts of Rajasthan, Gota Patti is the art of folding, shaping, and hand-stitching fine metallic Zari ribbon onto silk and velvet. Each tiny leaf or geometric petal is couched by hand with invisible thread."
+    ],
+    image: SQS_CDN + "a5e7be67-eacc-4e15-88af-5074b40dcb52/002001_HARTWICK_HANDEMBROIDERY_VENICE_BELT_GOTAPATTI.jpg"
+  },
+  {
+    id: "10",
+    key: "jamdani",
+    name: "Jamdani",
+    summary: "MOTIFS INTRODUCED BY HAND AS THE CLOTH IS WOVEN.",
+    blot: "marigold",
+    botanicalLabel: "Discontinuous Supplementary Weft",
+    paragraphs: [
+      "Recognized by UNESCO as an Intangible Cultural Heritage of Humanity, Jamdani is an ancient Bengal technique where intricate motifs are inlaid directly on the loom using fine bamboo spindles—making the pattern appear to float weightlessly inside sheer handwoven cotton."
+    ],
+    image: SQS_CDN + "1761393856799-C31HGGNECZJKGKS125XU/001_HARTWICK_HANDWOVEN_PALMA_SKIRT_KHADI_HANOI_SHIRT_JAMDANI.jpg"
+  },
+  {
+    id: "11",
+    key: "banaras-brocade",
+    name: "Banaras brocade",
+    summary: "DECORATIVE WEAVING, OFTEN IN SILK WITH ZARI THREADS.",
+    blot: "goldenrod",
+    botanicalLabel: "Varanasi Silk & Gold Zari",
+    paragraphs: [
+      "Woven in the historic looms of Varanasi (Banaras), these heirloom textiles intertwine fine mulberry silk with metallic gold and silver Zari threads to create luminous, sculptural brocades."
+    ],
+    image: SQS_CDN + "8d28d4d4-4b30-44c7-999b-636e1a552025/002+_HARTWICK_HANDWOVEN_MARYLEBONE_COAT_IKAT_BOMBAY_TROUSERS_SITGES_TOTEBAG.jpg"
+  },
+  {
+    id: "12",
+    key: "mashru-silk",
+    name: "Mashru silk",
+    summary: "LUSTROUS SILK EXTERIOR WOVEN WITH A SOFT COTTON INTERIOR.",
+    blot: "pokeberry",
+    botanicalLabel: "Satin-Weave Silk Warp & Cotton Weft",
+    paragraphs: [
+      "Mashru is an ingenious heritage weave that places luminous, plant-dyed silk on the outer face of the fabric while keeping breathable, comforting handspun cotton against the wearer's skin."
+    ],
+    image: SQS_CDN + "1761392514754-DYC1QWQ3N3J75IQF4AHO/019_HARTWICK_HANDWOVEN_SAMARKAND_DRESS_SILKCOTTON_VICTORIANROUGE_NATURALDYE_BLOCKPRINT.jpg.jpg"
+  }
+];
+
+const CRAFT_GLOSSARY_DATA = {
+  "khadi": {
+    id: "01",
+    title: "KHADI & HANDLOOM WEAVING",
+    subtitle: "Handspun & Handwoven Without Electricity",
+    body: "Khadi is made from handspun and handwoven natural fibers. From the harvest to the yarn on the charkha spinning wheel to the handloom weave, the material is crafted entirely by hand without electricity. It breathes with a supple softness in a rhythm that can only be created by skilled human hands."
+  },
+  "hand-spun": {
+    id: "02",
+    title: "HAND SPUN — FROM FIBRE TO YARN",
+    subtitle: "Natural Fibres Drawn Out and Twisted by Hand",
+    body: "Natural fibers are drawn out and twisted together on the charkha spinning wheel to form yarn. Every subtle slub records the human rhythm of the master spinner."
+  },
+  "handwoven": {
+    id: "03",
+    title: "HANDWOVEN ON PIT & FRAME LOOMS",
+    subtitle: "Yarns Brought Together on a Handloom",
+    body: "Handspun yarns are woven together on wooden handlooms without electricity, creating a breathable, heirloom cloth with true selvedge edges."
+  },
+  "block-print": {
+    id: "04",
+    title: "16-STEP HAND BLOCK PRINTING",
+    subtitle: "Hand-Carved Teakwood Blocks & Mud Resist",
+    body: "Using hand carved wooden blocks, Master Printers print each colour layer by layer using ancient resist dyeing techniques. Each piece requires a minimum of 16 processes, with the cloth resting for at least a full day between each step."
+  },
+  "natural-dye": {
+    id: "06",
+    title: "NATURAL & AYURVEDIC DYES",
+    subtitle: "Living Plant, Root & Mineral Alchemy",
+    body: "Master Colorists use ancient methods to create natural dyes using indigenous plants and minerals including wild indigo, pomegranate bark and seeds, tamarind, turmeric, jaggery, ash, and fermented iron."
+  },
+  "zari": {
+    id: "09",
+    title: "GOTA PATTI & JAIPUR GOLDSMITHING",
+    subtitle: "Royal Atelier Metalwork & Lapidary Craft",
+    body: "Hand-woven metallic Zari threads, Gota Patti ribbon embroidery, and 22k/23k gold settings forged by master stonecutters and goldsmiths in Jaipur."
+  }
+};
+
+const COLLECTION_META = {
+  "all-apparel": {
+    title: "Apparel Collection",
+    description: "Limited edition garments tailored from handspun and handwoven Khadi, wild silk, and natural dye block prints. Crafted by Master Artisans in small numbered lots."
+  },
+  "skirts-dresses": {
+    title: "Skirts & Dresses",
+    description: "Architectural pleats and fluid column silhouettes in handspun Khadi cotton, Matka silk, and 16-step natural dye block prints."
+  },
+  "shirts-blouses": {
+    title: "Shirts & Blouses",
+    description: "Heirloom shirtmaking crafted from UNESCO-heritage Jamdani muslin, yarn-dyed Ikat, and handspun silk-linen."
+  },
+  "trousers": {
+    title: "Trousers",
+    description: "High-waisted wide-leg and sculptural barrel-leg trousers in heavyweight handloom Khadi twill and double Ikat."
+  },
+  "coats-accessories": {
+    title: "Coats & Accessories",
+    description: "Hand-quilted reversible Ikat coats, Gota Patti embroidered silk velvet belts, and natural dye quilted travel bags."
+  },
+  "lounge": {
+    title: "Lounge",
+    description: "Ankle-sweeping block-printed robes, organic mulmul pyjama sets, and breathable linen-khadi resort silhouettes."
+  },
+  "fine-silk": {
+    title: "Fine Silk",
+    description: "Block printed by hand in natural dye. Each piece requires a minimum of 16 processes, with the mulberry silk resting for at least a day between each step."
+  },
+  "fine-jewellery": {
+    title: "Fine Jewellery",
+    description: "Inspired by traditional Indian jewellery, Byzantine and Anatolian archaeology. Handcrafted to order by master stonecutters, stone setters, and goldsmiths in Jaipur in 22k/23k gold and sterling silver."
+  },
+  "yoga-wellness": {
+    title: "Upaya Handwoven Yoga Mats (Phase 2 — §8.9)",
+    description: "Handwoven on pit looms in heavyweight organic Khadi and Ikat cotton, infused with medicinal Ayurvedic dyes of turmeric, wild indigo, and Himalayan rose."
+  },
+  "lot-0325": {
+    title: "Lot 0325 — Pre Order",
+    description: "Upcoming limited edition artisanal production lot. Reserve your piece prior to loom completion."
+  },
+  "lot-0924": {
+    title: "Lot 0924 — Available in Small Quantities",
+    description: "Current atelier edition. Handcrafted in small quantities and ready for immediate dispatch."
+  },
+  "lot-0324": {
+    title: "Lot 0324 — Archive / Sold Out",
+    description: "Completed heritage lot. View archival colourways and register via The Dispatch for future re-editions."
+  }
+};
+
+function formatPrice(product) {
+  if (STATE.currency === "GBP") {
+    return `£${product.price_gbp.toLocaleString("en-GB")}`;
+  }
+  if (STATE.currency === "USD") {
+    const usd = product.price_usd || Math.round(product.price_eur * 1.09);
+    return `$${usd.toLocaleString("en-US")}`;
+  }
+  return `€${product.price_eur.toLocaleString("en-IE")}`;
+}
+
+function formatAmount(eurAmount) {
+  if (STATE.currency === "GBP") {
+    const gbp = Math.round(eurAmount * 0.855);
+    return `£${gbp.toLocaleString("en-GB")}`;
+  }
+  if (STATE.currency === "USD") {
+    const usd = Math.round(eurAmount * 1.09);
+    return `$${usd.toLocaleString("en-US")}`;
+  }
+  return `€${eurAmount.toLocaleString("en-IE")}`;
+}
+
+function renderDyeBlockIcon() {
+  return `
+    <svg class="dye-block-ornament" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.2">
+      <rect x="6" y="6" width="36" height="36" />
+      <rect x="12" y="12" width="24" height="24" />
+      <path d="M24 6V42M6 24H42M12 12L36 36M36 12L12 36" stroke-opacity="0.55"/>
+      <circle cx="24" cy="24" r="5" fill="currentColor"/>
+    </svg>
+  `;
+}
+
+// ==========================================================================
+// BRIEF BADGE TOGGLE & PHASE 1 / PHASE 2 MODE SWITCHER
+// ==========================================================================
+function toggleBriefBadges() {
+  STATE.showBriefBadges = !STATE.showBriefBadges;
+  document.body.classList.toggle("hide-brief-tags", !STATE.showBriefBadges);
+  const btn = document.getElementById("badge-toggle-btn");
+  if (btn) {
+    btn.innerHTML = STATE.showBriefBadges
+      ? "✓ Brief Numbers: Visible"
+      : "Brief Numbers: Hidden (Click to Show)";
+  }
+}
+
+function jumpToBriefSection(view, sectionId) {
+  if (STATE.currentView !== view) {
+    STATE.currentView = view;
+    renderApp();
+  }
+  setTimeout(() => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, 80);
+}
+
+function openCartWithDemoItem() {
+  if (STATE.cart.length === 0 && window.HARTWICK_PRODUCTS && window.HARTWICK_PRODUCTS.length > 0) {
+    const sample = window.HARTWICK_PRODUCTS[0];
+    STATE.cart.push({
+      key: `${sample.handle}__S`,
+      product: sample,
+      size: "S",
+      qty: 1
+    });
+    renderHeaderAndFooterNav();
+    renderCartDrawer();
+  }
+  openCartDrawer();
+}
+
+function togglePhaseMode() {
+  STATE.phase2Enabled = !STATE.phase2Enabled;
+  if (!STATE.phase2Enabled) {
+    if (STATE.currency === "USD") STATE.currency = "EUR";
+    if (STATE.shippingRegion === "US") STATE.shippingRegion = "EU";
+    if (["yoga-wellness"].includes(STATE.currentCollection)) {
+      STATE.currentCollection = "all-apparel";
+    }
+    if (["journal", "wholesale", "wishlist"].includes(STATE.currentView)) {
+      STATE.currentView = "home";
+    }
+    STATE.techniqueFilter = "ALL";
+  }
+
+  const btn = document.getElementById("phase-toggle-btn");
+  if (btn) {
+    if (STATE.phase2Enabled) {
+      btn.style.background = "#FAF8F4";
+      btn.style.color = "#1A1A1A";
+      btn.innerHTML = "✦ Phase 1 + Phase 2 Complete (§1–§8.10 Active)";
+    } else {
+      btn.style.background = "rgba(250,248,244,0.14)";
+      btn.style.color = "#FAF8F4";
+      btn.innerHTML = "Mode: Phase 1 Only (§1–§7) · Click for Phase 1+2";
+    }
+  }
+
+  const currSelect = document.getElementById("currency-select");
+  if (currSelect) {
+    currSelect.innerHTML = `
+      <option value="EUR" ${STATE.currency === "EUR" ? "selected" : ""}>EUR (€) [§5.2]</option>
+      <option value="GBP" ${STATE.currency === "GBP" ? "selected" : ""}>GBP (£) [§5.2]</option>
+      ${STATE.phase2Enabled ? `<option value="USD" ${STATE.currency === "USD" ? "selected" : ""}>USD ($) [§8.7 P2]</option>` : ""}
+    `;
+  }
+
+  const footerNote = document.getElementById("footer-currency-note");
+  if (footerNote) {
+    footerNote.innerHTML = "EUR (€) · GBP (£) · USD ($) — Insured Worldwide Fulfilment";
+  }
+
+  renderHeaderAndFooterNav();
+  renderApp();
+  renderCartDrawer();
+}
+
+function renderHeaderAndFooterNav() {
+  const nav = document.getElementById("primary-nav");
+  const actions = document.getElementById("header-actions");
+  const footerLinks = document.getElementById("footer-links-list");
+
+  if (nav) {
+    nav.innerHTML = `
+      <!-- APPAREL Streamlined 2-Column Mega-Menu (Direction 2 Quiet Luxury) -->
+      <div class="nav-item nav-item--megamenu" id="sec-1-nav">
+        <button class="nav-link" onclick="navigateTo('collection', 'all-apparel')">
+          <span>Apparel</span>
+          <span class="nav-caret">▾</span>
+        </button>
+        <div class="nav-megamenu">
+          <div class="nav-megamenu__inner">
+            <!-- Left Column: Collection Categories -->
+            <div class="nav-megamenu__col">
+              <span class="nav-megamenu__eyebrow">Collection Categories</span>
+              <button class="nav-megamenu__link nav-megamenu__link--featured" onclick="navigateTo('collection', 'all-apparel')">All Apparel</button>
+              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'skirts-dresses')">Skirts &amp; Dresses</button>
+              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'shirts-blouses')">Shirts &amp; Blouses</button>
+              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'trousers')">Trousers</button>
+              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'coats-accessories')">Coats &amp; Accessories</button>
+              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'lounge')">Lounge</button>
+            </div>
+
+            <!-- Right Column: Editorial Spotlight (Typography Only — Photo Removed) -->
+            <div class="nav-megamenu__editorial">
+              <span class="nav-megamenu__eyebrow">Editorial Spotlight</span>
+              <div class="nav-megamenu__editorial-card nav-megamenu__editorial-card--no-img">
+                <div class="nav-megamenu__editorial-meta">
+                  <strong class="nav-megamenu__editorial-title" onclick="navigateTo('pdp', 'tribeca-matka-silk-emerald')">Tribeca Skirt — Emerald Matka Silk</strong>
+                  <p class="nav-megamenu__editorial-sub">Handspun Mulberry Matka Silk in Natural Botanical Dye</p>
+                  <div class="nav-megamenu__editorial-actions">
+                    <button type="button" class="nav-megamenu__action-link" onclick="navigateTo('pdp', 'tribeca-matka-silk-emerald')">Inspect Garment ↗</button>
+                    <button type="button" class="nav-megamenu__action-link" onclick="goToProductionRecordFlow()">Explore Fibre to Garment ↗</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ABOUT Dropdown (Matching Apparel Mega-Menu Typography) -->
+      <div class="nav-item">
+        <button class="nav-link" onclick="navigateTo('our-story')">
+          <span>About</span>
+          <span class="nav-caret">▾</span>
+        </button>
+        <div class="nav-dropdown">
+          <span class="nav-megamenu__eyebrow">The House</span>
+          <button class="nav-dropdown__link" onclick="navigateTo('our-story')">Our Story</button>
+          <button class="nav-dropdown__link" onclick="navigateTo('the-masters')">The Masters &amp; Glossary</button>
+          <button class="nav-dropdown__link" onclick="openPrivateAppointmentModal()">Private Appointments</button>
+          <button class="nav-dropdown__link" onclick="navigateTo('contact')">Contact</button>
+          <button class="nav-dropdown__link" onclick="navigateTo('returns-policy')">Returns Policy</button>
+        </div>
+      </div>
+
+      <!-- FINE SILK -->
+      <div class="nav-item">
+        <button class="nav-link" onclick="navigateTo('collection', 'fine-silk')">
+          <span>Fine Silk</span>
+        </button>
+      </div>
+
+      <!-- FINE JEWELLERY -->
+      <div class="nav-item">
+        <button class="nav-link" onclick="navigateTo('collection', 'fine-jewellery')">
+          <span>Fine Jewellery</span>
+        </button>
+      </div>
+
+      <!-- THE MASTERS -->
+      <div class="nav-item">
+        <button class="nav-link" onclick="navigateTo('the-masters')">
+          <span>The Masters</span>
+        </button>
+      </div>
+    `;
+  }
+
+  if (actions) {
+    const totalQty = STATE.cart.reduce((sum, i) => sum + i.qty, 0);
+    actions.innerHTML = `
+      <button class="header-action-btn" onclick="openPrivateAppointmentModal()" title="Book a Private Appointment">
+        <span>Private Appointments</span>
+      </button>
+      <button class="header-action-btn" onclick="openCartDrawer()">
+        <span>Bag</span>
+        <span class="cart-count-badge" id="header-cart-count">${totalQty}</span>
+      </button>
+    `;
+  }
+
+  if (footerLinks) {
+    footerLinks.innerHTML = `
+      <li><button onclick="navigateTo('our-story')">Our Story</button></li>
+      <li><button onclick="navigateTo('the-masters')">The Masters &amp; Glossary</button></li>
+      <li><button onclick="openPrivateAppointmentModal()">Private Appointments</button></li>
+      <li><button onclick="navigateTo('returns-policy')">Returns Policy</button></li>
+      <li><button onclick="navigateTo('contact')">Contact</button></li>
+    `;
+  }
+}
+
+// ==========================================================================
+// NAVIGATION, TWO-WAY PRODUCT <-> MASTERS FLOW & VIEW ROUTING
+// ==========================================================================
+function updateReviewToolbarActive(activeStepOverride = null) {
+  const map = {
+    "home": "quick-btn-home",
+    "pdp": "quick-btn-pdp",
+    "record": "quick-btn-record",
+    "the-masters": "quick-btn-masters"
+  };
+  const targetKey = activeStepOverride || STATE.currentView;
+  ["quick-btn-home", "quick-btn-pdp", "quick-btn-record", "quick-btn-masters"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.classList.toggle("review-jump-btn--active", map[targetKey] === id);
+    }
+  });
+
+  const sel = document.getElementById("garment-switcher-select");
+  if (sel && STATE.currentProductHandle) {
+    sel.value = STATE.currentProductHandle;
+  }
+
+  const banner = document.getElementById("flow-return-banner");
+  if (banner) {
+    banner.style.display = "none";
+  }
+}
+
+function goToProductionRecordFlow() {
+  if (STATE.currentView !== "pdp") {
+    STATE.currentView = "pdp";
+    renderApp();
+  }
+  updateReviewToolbarActive("record");
+  setTimeout(() => {
+    const el = document.getElementById("pdp-fibre-to-garment") || document.getElementById("pdp-production-record");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, 80);
+}
+
+function navigateToMastersTechnique(glossaryId) {
+  STATE.cameFromPdp = (STATE.currentView === "pdp");
+  if (STATE.currentView === "pdp" && STATE.currentProductHandle) {
+    STATE.lastPdpHandle = STATE.currentProductHandle;
+  }
+  STATE.activeGlossaryId = glossaryId || "02";
+  STATE.currentView = "the-masters";
+  try {
+    window.history.pushState({ view: "the-masters", param: STATE.activeGlossaryId }, "", "#the-masters");
+  } catch (e) {}
+  renderApp();
+  updateReviewToolbarActive();
+  setTimeout(() => {
+    const row = document.getElementById(`glossary-row-${STATE.activeGlossaryId}`);
+    if (row) {
+      row.classList.add("open", "active-highlight");
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }, 90);
+}
+
+function returnToProductFromMasters() {
+  STATE.cameFromPdp = false;
+  navigateTo("pdp", STATE.lastPdpHandle || STATE.currentProductHandle || "tribeca-matka-silk-emerald");
+}
+
+function selectSizeAndReturnToPdp(size) {
+  STATE.selectedSize = size;
+  returnToProductFromMasters();
+}
+
+function navigateTo(view, param = null, skipPushState = false) {
+  if (STATE.currentView === "pdp" && STATE.currentProductHandle) {
+    STATE.lastPdpHandle = STATE.currentProductHandle;
+  }
+  if (view !== "the-masters") {
+    STATE.cameFromPdp = (STATE.currentView === "pdp");
+  }
+  STATE.currentView = view;
+  if (view === "collection" && param) {
+    STATE.currentCollection = param;
+    STATE.techniqueFilter = "ALL";
+  }
+  if (view === "pdp" && param) {
+    STATE.currentProductHandle = param;
+    STATE.lastPdpHandle = param;
+    STATE.selectedSize = STATE.selectedSize || "S";
+    STATE.selectedImageIndex = 0;
+  }
+  if (!skipPushState) {
+    try {
+      window.history.pushState({ view, param }, "", `#${view}${param ? "/" + param : ""}`);
+    } catch (e) {}
+  }
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  renderApp();
+  updateReviewToolbarActive();
+}
+
+window.addEventListener("popstate", (e) => {
+  if (e.state && e.state.view) {
+    navigateTo(e.state.view, e.state.param || null, true);
+  } else {
+    navigateTo("pdp", STATE.lastPdpHandle || "tribeca-matka-silk-emerald", true);
+  }
+});
+
+// ==========================================================================
+// VIEW 1: HOMEPAGE (SECTION 2 — VERBATIM 10-SECTION FLOW + PHASE 2 SHOWCASE)
+// ==========================================================================
+function renderHomepage() {
+  const instaImages = [
+    SQS_CDN + "1733585356963-UYLAKZUX9O52IES83CEB/image-asset.jpeg",
+    SQS_CDN + "1733488725000-SFRNNDKSPFCYU7THM4ON/image-asset.jpeg",
+    SQS_CDN + "1733404646238-6DFVWRQK127JQXRXTCF4/image-asset.jpeg",
+    SQS_CDN + "1733315961132-BXS83LCLHP8HFRS0UW5U/image-asset.jpeg",
+    SQS_CDN + "1733072083541-3INMHHH42J953X5CQKLM/image-asset.jpeg",
+    SQS_CDN + "1732837504744-NKP83FQYX3ZPQVXXC6Z1/image-asset.jpeg"
+  ];
+
+  const phase2Products = window.HARTWICK_PRODUCTS.filter(p => p.phase === 2);
+
+  return `
+    <!-- SECTION 2.1 — HERO -->
+    <section class="hero-section" id="sec-2-1-hero">
+      <div class="brief-tag brief-tag--float">Brief §2.1 — Hero (Full-Bleed Image · "LIMITED EDITION COLLECTIONS" · No Button Overlay)</div>
+      <img
+        id="hero-parallax-img"
+        class="hero-section__img"
+        src="${SQS_CDN}647043be-fcc2-4ccd-a1ed-902e681194c4/156_HARTWICK_EDITORIAL_PARIS.jpg"
+        alt="Hartwick Atelier Limited Edition Collections"
+      />
+      <div class="hero-section__overlay">
+        <img
+          class="hero-section__crest"
+          src="${SQS_CDN}7c12511b-32bf-4ec2-aa52-d3644b321b72/Hartwick_logo_PlainFrame_Square_SansAtelier+white.png"
+          alt="Hartwick Atelier Crest"
+        />
+        <h1 class="hero-section__title">LIMITED EDITION COLLECTIONS</h1>
+      </div>
+      <div class="hero-scroll-indicator" aria-hidden="true">
+        <div class="hero-scroll-indicator__line"></div>
+      </div>
+    </section>
+
+    <!-- SECTION 2.2 — BRAND STATEMENT (Verbatim Copy + Large Botanical Dots + Clear Newsletter CTA) -->
+    <section class="brand-statement reveal-on-scroll" id="sec-2-2-statement">
+      <div class="brief-section-banner">
+        <span class="brief-tag">Brief §2.2 — Brand Statement &amp; Natural Dye Block Icon</span>
+      </div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:18px;margin-bottom:26px">
+        <img src="assets/blots/dot_iron_rust.png" alt="Marigold & Iron Dot" style="width:76px;height:76px;object-fit:contain;mix-blend-mode:multiply" />
+        <img src="assets/blots/swatch_marigold.png" alt="Marigold Swatch" style="width:72px;height:72px;object-fit:contain;mix-blend-mode:multiply" />
+        <img src="assets/blots/dot_indigo_moss.png" alt="Wild Indigo Dot" style="width:76px;height:76px;object-fit:contain;mix-blend-mode:multiply" />
+      </div>
+      <p class="brand-statement__lead">
+        “Textile history dates back to the beginning of human civilization.”
+      </p>
+      <p class="brand-statement__body reveal-on-scroll reveal-delay-1">
+        Hartwick Atelier specializes in hand spun and handwoven fabrics, natural and ayurvedic dyes, and exquisite heritage handwork. These artisanal techniques rely on rare knowledge and the natural cycles of the earth.
+      </p>
+      <p class="brand-statement__body reveal-on-scroll reveal-delay-2">
+        Each handcrafted piece in the collection is a glimpse into the rich history, intricate process and generations of skill that have gone into its creation.
+      </p>
+      <div style="margin-top:32px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap">
+        <button class="btn-primary" onclick="scrollToElementById('sec-2-9-dispatch')">
+          Subscribe to The Dispatch Newsletter ↓
+        </button>
+        <button class="btn-outline" onclick="openPrivateAppointmentModal()">
+          The Circle · Request a Private Appointment
+        </button>
+      </div>
+    </section>
+
+    <!-- SECTION 2.3 — FOUR PILLARS (With Prominent Botanical Dots) -->
+    <section class="four-pillars" id="sec-2-3-pillars">
+      <div class="brief-section-banner">
+        <span class="brief-tag">Brief §2.3 — Four Pillars (Text Block I–IV)</span>
+      </div>
+      <div class="four-pillars__inner">
+        <div class="pillar-card reveal-on-scroll">
+          <div style="margin-bottom:16px">
+            <img src="assets/blots/dot_goldenrod.png" alt="Handspun Dot" style="width:72px;height:72px;object-fit:contain;mix-blend-mode:multiply" />
+          </div>
+          <span class="pillar-card__num">I</span>
+          <h3 class="pillar-card__title">Handspun and Handwoven Fabrics.</h3>
+        </div>
+        <div class="pillar-card reveal-on-scroll reveal-delay-1">
+          <div style="margin-bottom:16px">
+            <img src="assets/blots/dot_iron_rust.png" alt="Natural Dye Dot" style="width:72px;height:72px;object-fit:contain;mix-blend-mode:multiply" />
+          </div>
+          <span class="pillar-card__num">II</span>
+          <h3 class="pillar-card__title">Natural and Ayurvedic Dyes.</h3>
+        </div>
+        <div class="pillar-card reveal-on-scroll reveal-delay-2">
+          <div style="margin-bottom:16px">
+            <img src="assets/blots/dot_apricot.png" alt="Handwork Dot" style="width:72px;height:72px;object-fit:contain;mix-blend-mode:multiply" />
+          </div>
+          <span class="pillar-card__num">III</span>
+          <h3 class="pillar-card__title">Exquisite Heritage Handwork.</h3>
+        </div>
+        <div class="pillar-card reveal-on-scroll reveal-delay-3">
+          <div style="margin-bottom:16px">
+            <img src="assets/blots/dot_walnut.png" alt="Tailored Dot" style="width:72px;height:72px;object-fit:contain;mix-blend-mode:multiply" />
+          </div>
+          <span class="pillar-card__num">IV</span>
+          <h3 class="pillar-card__title">Finely Tailored, Heirloom Quality.</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2.4 — THE FEEL -->
+    <section class="the-feel" id="sec-2-4-feel">
+      <div class="the-feel__media luxury-img-reveal reveal-on-scroll">
+        <span class="brief-tag brief-tag--float">Brief §2.4 — The Feel</span>
+        <img
+          src="${SQS_CDN}3a6786b9-45ce-459e-83cb-4bee1d2e3554/184_HARTWICK_STYLE_FABRIC4R1A8940.jpg"
+          alt="Handspun and handwoven natural fibres"
+        />
+      </div>
+      <div class="the-feel__content reveal-on-scroll reveal-delay-2">
+        <span class="brief-tag" style="margin-bottom:14px">Brief §2.4 — Verbatim Quote</span>
+        <span class="section-eyebrow">The Tactile Experience</span>
+        <blockquote class="the-feel__quote">
+          “Wearing handspun and handwoven fabric has a different feeling than wearing industrially produced fabrics; handwoven natural fibres drape and breathe with a supple softness in a rhythm that can only be created by a human hand. The feeling is truly luxurious.”
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- SECTION 2.5 — COLLECTIONS / LOT STATUS -->
+    <section class="lot-status-section" id="sec-2-5-lots">
+      <div class="lot-status__inner">
+        <div class="lot-status__header reveal-on-scroll">
+          <div class="brief-section-banner">
+            <span class="brief-tag">Brief §2.5 — Collections / Lot Status (3 Lot Tiles) &amp; §3 Catalog (#01–#66)</span>
+          </div>
+          <span class="section-eyebrow">Edition Availability</span>
+          <h2 class="lot-status__title">COLLECTIONS · LOT STATUS</h2>
+        </div>
+        <div class="lot-status__grid">
+          <article class="lot-tile reveal-on-scroll" onclick="navigateTo('collection', 'lot-0325')">
+            <div class="lot-tile__img-wrap">
+              <span class="brief-tag brief-tag--float">§2.5.1 — Lot 0325 (Pre Order)</span>
+              <img src="${SQS_CDN}b1d05e6b-5963-48ff-b979-b69939b7698d/002HARTWICK_HANDWOVEN_IKAT_MARYLEBONE_COAT_LONDON-2.jpg" alt="Lot 0325" />
+            </div>
+            <div class="lot-tile__body">
+              <div class="lot-tile__top">
+                <h3 class="lot-tile__name">Lot 0325</h3>
+                <span class="lot-badge lot-badge--preorder">Pre Order</span>
+              </div>
+              <p class="lot-tile__desc">Hand-quilted Ikat outerwear, Matka silk tailoring, and new Jaipur goldsmith editions.</p>
+              <span class="lot-tile__cta">Explore Lot 0325 →</span>
+            </div>
+          </article>
+
+          <article class="lot-tile reveal-on-scroll reveal-delay-1" onclick="navigateTo('collection', 'lot-0924')">
+            <div class="lot-tile__img-wrap">
+              <span class="brief-tag brief-tag--float">§2.5.2 — Lot 0924 (Available)</span>
+              <img src="${SQS_CDN}0f9d2225-1884-49cd-83e8-e835a79aaf42/002_HARTWICK_HANDWOVEN_PALMA_SKIRT_KHADI_PRAGUE_SHIRT_NATURALDYE_COTTONFIELDS.jpg" alt="Lot 0924" />
+            </div>
+            <div class="lot-tile__body">
+              <div class="lot-tile__top">
+                <h3 class="lot-tile__name">Lot 0924</h3>
+                <span class="lot-badge lot-badge--available">Available in Small Quantities</span>
+              </div>
+              <p class="lot-tile__desc">Signature Khadi shirts, pleated skirts, wide-leg twill trousers, and 16-step block-printed silks.</p>
+              <span class="lot-tile__cta">Explore Lot 0924 →</span>
+            </div>
+          </article>
+
+          <article class="lot-tile reveal-on-scroll reveal-delay-2" onclick="navigateTo('collection', 'lot-0324')">
+            <div class="lot-tile__img-wrap">
+              <span class="brief-tag brief-tag--float">§2.5.3 — Lot 0324 (Sold Out)</span>
+              <img src="${SQS_CDN}d034acf8-b744-4456-8aa3-88769320fafc/033_HARTWICK_EDITORIAL_TATLAYOKO.jpg" alt="Lot 0324" />
+            </div>
+            <div class="lot-tile__body">
+              <div class="lot-tile__top">
+                <h3 class="lot-tile__name">Lot 0324</h3>
+                <span class="lot-badge lot-badge--soldout">Sold Out</span>
+              </div>
+              <p class="lot-tile__desc">Inaugural archival lot crafted in small batches with natural indigo and madder root.</p>
+              <span class="lot-tile__cta">View Archive Lot →</span>
+            </div>
+          </article>
+        </div>
+
+        <div style="text-align:center;margin-top:42px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="navigateTo('collection', 'all-apparel')">
+            View Full Catalog →
+          </button>
+          <button class="btn-outline" onclick="navigateTo('pdp', 'palma-skirt-indigo-khadi')">
+            Inspect Product Page Template →
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2.6 — CRAFT DETAIL (Image + Text Panels) -->
+    <section class="craft-detail-section" id="sec-2-6-craft">
+      <div class="brief-section-banner">
+        <span class="brief-tag">Brief §2.6 — Craft Detail (Panel 1: Natural Dye · Panel 2: 16-Step Block Printing)</span>
+      </div>
+      <div class="craft-panel">
+        <div class="craft-panel__media luxury-img-reveal reveal-on-scroll">
+          <span class="brief-tag brief-tag--float">§2.6.1 — Natural Dye Panel</span>
+          <img
+            src="${SQS_CDN}9fa64956-028e-4a2c-aae7-8ba0e194e764/088_HARTWICK_FINESILK_PETITSQUARE01_SCARF_NATURALDYE_BLOCKPRINT.jpg"
+            alt="Natural Dye Craft"
+          />
+        </div>
+        <div class="craft-panel__text reveal-on-scroll reveal-delay-1">
+          <span class="section-eyebrow">Heritage Alchemy</span>
+          <h2 class="craft-panel__title">Natural Dye</h2>
+          <p class="craft-panel__copy">
+            “Master Colorists use ancient methods to create natural dyes using indigenous plants and minerals including wild indigo, pomegranate bark and seeds, tamarind, turmeric, jaggery, ash, and iron.”
+          </p>
+          <button class="btn-outline" onclick="navigateTo('the-masters')">Discover The Masters</button>
+        </div>
+      </div>
+
+      <div class="craft-panel craft-panel--reverse">
+        <div class="craft-panel__media luxury-img-reveal reveal-on-scroll">
+          <span class="brief-tag brief-tag--float">§2.6.2 — Block Printing Panel</span>
+          <img
+            src="${SQS_CDN}643566b4-c934-4030-922c-ec6f24a25e06/218_HARTWICK_FINESILK_LARGESQUARE_SCARF_NATURALDYE_BLOCKPRINT.jpg"
+            alt="Hand Carved Wooden Block Printing"
+          />
+        </div>
+        <div class="craft-panel__text reveal-on-scroll reveal-delay-1">
+          <span class="section-eyebrow">Sixteen Processes</span>
+          <h2 class="craft-panel__title">Block Printing</h2>
+          <p class="craft-panel__copy">
+            “Using hand carved wooden blocks, Master Printers print each colour, layer by layer using resist dyeing techniques… Each piece requires a minimum of 16 processes, with the silk resting for at least a day between each step.”
+          </p>
+          <button class="btn-outline" onclick="navigateTo('collection', 'fine-silk')">Explore Fine Silk</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2.7 — FOUNDER QUOTE -->
+    <section class="founder-quote-section" id="sec-2-7-founder">
+      <div class="founder-quote__inner reveal-on-scroll">
+        <div class="brief-section-banner">
+          <span class="brief-tag">Brief §2.7 — Founder Quote (Angela Hartwick)</span>
+        </div>
+        ${renderDyeBlockIcon()}
+        <blockquote class="founder-quote__text">
+          “Hartwick Atelier is the culmination of decades of world travel as creatives in fashion and film. At first glance, it's an elegant lifestyle brand with a distinct character and gorgeous texture. But at its roots, each collection is a portrait of nature and sustainability through refined handcraft. It's an analogue love story.”
+        </blockquote>
+        <p class="founder-quote__author">— Angela Hartwick, Founder and Creative Director</p>
+      </div>
+    </section>
+
+    ${STATE.phase2Enabled ? `
+      <!-- SECTION 8 — PHASE 2 COMPLETE SCOPE SHOWCASE (§8.1 – §8.10 VISIBLY INTEGRATED) -->
+      <section class="phase2-showcase-section" id="sec-8-phase2">
+        <div class="phase2-showcase__inner">
+          <div class="brief-section-banner">
+            <span class="brief-tag brief-tag--phase2">Brief §8.1 – §8.10 — Phase 2 Complete Scope (All 10 Features Live &amp; Interactive)</span>
+          </div>
+          <div style="text-align:center;max-width:820px;margin:0 auto">
+            <span class="section-eyebrow">Phase 1 + Phase 2 Complete Build</span>
+            <h2 style="font-family:var(--font-serif);font-size:clamp(1.7rem,2.6vw,2.4rem);font-weight:400;letter-spacing:0.06em;margin-bottom:12px">
+              PHASE 2 MODULES &amp; EXPANDED ARCHIVE (§8.1 – §8.10)
+            </h2>
+            <p style="color:var(--text-secondary);font-size:15px">
+              Click any numbered Phase 2 module below to test it live, or explore the 6 Phase 2 products (#61–#66) right below.
+            </p>
+          </div>
+
+          <div class="phase2-grid">
+            <div class="phase2-card" onclick="openCraftGlossaryModal('block-print')">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.1 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">Craft Glossary Annotations</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">Interactive pop-up definitions linking product fabric techniques to The Masters.</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">Test Modal →</span>
+            </div>
+
+            <div class="phase2-card" onclick="navigateTo('journal')">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.2 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">Editorial Blog / Journal</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">"The Analogue Journal" — long-form stories from the dye vats and handlooms.</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">Open Journal →</span>
+            </div>
+
+            <div class="phase2-card" onclick="navigateTo('pdp', 'palma-skirt-indigo-khadi')">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.3 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">Atelier Circle Loyalty</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">Automatic loyalty points calculation (2 pts per €1) on every Product Page &amp; Bag.</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">View on PDP →</span>
+            </div>
+
+            <div class="phase2-card" onclick="navigateTo('wishlist')">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.4 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">Wishlist Functionality</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">Save pieces with ♥ on any collection card or PDP to your personal Wishlist.</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">Open Wishlist (${STATE.wishlist.length}) →</span>
+            </div>
+
+            <div class="phase2-card" onclick="navigateTo('wholesale')">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.5 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">B2B Wholesale Portal</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">Private showroom login and Lot 0325 wholesale line-sheets for international buyers.</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">Open Portal →</span>
+            </div>
+
+            <div class="phase2-card" onclick="openSizeRecommendationModal()">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.6 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">Size Recommendation Tool</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">Interactive measurement calculator recommending XS–XL based on height &amp; waist.</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">Try Calculator →</span>
+            </div>
+
+            <div class="phase2-card" onclick="changeCurrency('USD');openCartWithDemoItem()">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.7 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">US Shipping &amp; USD ($)</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">Full USD ($) pricing and United States DHL Express shipping zone in Checkout.</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">Test USD &amp; US Bag →</span>
+            </div>
+
+            <div class="phase2-card" onclick="navigateTo('collection', 'all-apparel')">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.8 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">Craft &amp; Fabric Filter</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">Filter any collection by Khadi, Ikat, Block Print, Jamdani, or Silk.</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">Try Filter →</span>
+            </div>
+
+            <div class="phase2-card" onclick="navigateTo('collection', 'yoga-wellness')">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.9 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">Upaya Yoga Mats</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">Dedicated Yoga category with Ayurvedic-dyed handloom mats (#61–#63).</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">View Yoga Mats →</span>
+            </div>
+
+            <div class="phase2-card" onclick="navigateTo('pdp', 'corsica-coat-raw-tussar-silk')">
+              <div>
+                <span class="brief-tag brief-tag--phase2" style="margin-bottom:10px">§8.10 Phase 2</span>
+                <h3 style="font-family:var(--font-serif);font-size:18px;margin-bottom:6px">Archive &amp; Draft SKUs</h3>
+                <p style="font-size:13px;color:var(--text-secondary)">Includes Corsica Coat (#64), Shayla 01 Headscarf (#65), and Rich Ribbons (#66).</p>
+              </div>
+              <span style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;text-decoration:underline">Inspect #64–#66 →</span>
+            </div>
+          </div>
+
+          <!-- Direct Preview of the 6 Phase 2 Products (#61–#66) -->
+          <div style="margin-top:48px">
+            <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:22px;flex-wrap:wrap;gap:12px">
+              <h3 style="font-family:var(--font-serif);font-size:22px;font-weight:400">
+                Phase 2 Catalog Additions — Products #61 to #66 <span class="brief-tag brief-tag--phase2" style="margin-left:8px">§8.9 &amp; §8.10</span>
+              </h3>
+              <button class="btn-outline" style="padding:10px 20px" onclick="navigateTo('collection', 'yoga-wellness')">
+                View Upaya Yoga Collection →
+              </button>
+            </div>
+            <div class="product-grid">
+              ${phase2Products.map(product => `
+                <article class="product-card" onclick="navigateTo('pdp', '${product.handle}')">
+                  <div class="product-card__media">
+                    <div class="product-card__badges">
+                      <span class="brief-tag brief-tag--phase2">Product #${String(product.catalogNumber).padStart(2, "0")} · Phase 2</span>
+                      <span class="badge-pill">${product.lot}</span>
+                    </div>
+                    <img class="product-card__img product-card__img--primary" src="${product.images[0]}" alt="${product.title}" loading="lazy" />
+                    <img class="product-card__img product-card__img--secondary" src="${product.images[1] || product.images[0]}" alt="${product.title}" loading="lazy" />
+                  </div>
+                  <div class="product-card__info">
+                    <h2 class="product-card__title">${product.title}</h2>
+                    <p class="product-card__expression">${product.commercial_expression}</p>
+                    <p class="product-card__price">${formatPrice(product)}</p>
+                  </div>
+                </article>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      </section>
+    ` : ""}
+
+    <!-- THE CIRCLE — PRIVATE APPOINTMENTS SECTION (Client Action Item 2) -->
+    <section class="the-circle-appointments-section" id="sec-the-circle-appointments" style="background:#EAE4DA;border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);padding:6rem var(--gutter)">
+      <div style="max-width:var(--max-width);margin:0 auto;display:grid;grid-template-columns:1.1fr 1fr;gap:4rem;align-items:center">
+        <div>
+          <div style="display:flex;align-items:center;gap:20px;margin-bottom:20px">
+            <img src="assets/blots/dot_goldenrod.png" alt="Goldenrod Botanical Dot" style="width:82px;height:82px;object-fit:contain;mix-blend-mode:multiply" />
+            <div>
+              <span class="section-eyebrow" style="color:#6E5A49;margin-bottom:4px">The Circle · Private Client Services</span>
+              <h2 style="font-family:var(--font-serif);font-size:clamp(2rem,3vw,2.75rem);font-weight:300;letter-spacing:0.05em;text-transform:uppercase;color:#1E1B18">
+                Private Appointments
+              </h2>
+            </div>
+          </div>
+          <p style="font-family:var(--font-serif);font-size:18px;line-height:1.8;color:var(--text-secondary);margin-bottom:20px">
+            The Circle invites you to experience Hartwick Atelier through a one-on-one Private Appointment—available via virtual studio consultation or private showroom viewing.
+          </p>
+          <p style="font-family:var(--font-serif);font-size:16px;line-height:1.8;color:var(--text-secondary);margin-bottom:30px">
+            Receive personalized guidance on silhouette and sizing (XS–XL), explore our handspun Khadi and wild Matka silk archive, or discuss bespoke lot reservations directly with our atelier.
+          </p>
+          <div style="display:flex;gap:14px;flex-wrap:wrap">
+            <button type="button" class="btn-primary" onclick="openPrivateAppointmentModal()">
+              Request a Private Appointment
+            </button>
+            <button type="button" class="btn-outline" onclick="navigateTo('collection', 'all-apparel')">
+              Explore Current Collection
+            </button>
+          </div>
+        </div>
+        <div style="background:#FAF8F4;border:1px solid var(--border-strong);padding:34px">
+          <span style="display:block;font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:#6E5A49;margin-bottom:10px">
+            The Circle · Direct Booking
+          </span>
+          <h3 style="font-family:var(--font-serif);font-size:24px;font-weight:400;color:#1E1B18;margin-bottom:16px">
+            Book Your Consultation
+          </h3>
+          <form onsubmit="event.preventDefault();document.getElementById('home-circle-msg').innerHTML='Thank you. Our Private Client team will confirm your appointment within 24 hours.';">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" class="form-control" required placeholder="Your name" />
+            </div>
+            <div class="form-group">
+              <label>Email Address</label>
+              <input type="email" class="form-control" required placeholder="your@email.com" />
+            </div>
+            <div class="form-group">
+              <label>Consultation Preference</label>
+              <input type="text" class="form-control" value="Private Styling, Sizing (XS–XL) &amp; Textile Consultation" />
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%">Confirm Private Appointment Request</button>
+            <div id="home-circle-msg" class="dispatch-feedback" style="margin-top:12px"></div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2.8 — INSTAGRAM FEED (@HARTWICKATELIER) -->
+    <section class="instagram-section" id="sec-2-8-insta">
+      <div class="brief-section-banner">
+        <span class="brief-tag">Brief §2.8 — Instagram Feed (@HARTWICKATELIER Visual Grid)</span>
+      </div>
+      <div class="instagram-section__header reveal-on-scroll">
+        <div>
+          <span class="section-eyebrow">Visual Journal</span>
+          <h2 class="instagram-section__title">Follow the Atelier</h2>
+        </div>
+        <a href="https://instagram.com/worldofhartwickatelier" target="_blank" rel="noopener" class="instagram-section__handle">
+          @HARTWICKATELIER
+        </a>
+      </div>
+      <div class="instagram-grid">
+        ${instaImages.map((src, i) => `
+          <a href="https://instagram.com/worldofhartwickatelier" target="_blank" rel="noopener" class="instagram-item reveal-on-scroll reveal-delay-${(i % 4) + 1}">
+            <img src="${src}" alt="Hartwick Atelier Instagram ${i + 1}" loading="lazy" />
+          </a>
+        `).join("")}
+      </div>
+    </section>
+
+    <!-- SECTION 2.9 — PROMINENT NEWSLETTER CTA ("THE DISPATCH" — Client Action Item 2) -->
+    <section class="the-register-banner" id="sec-2-9-dispatch">
+      <div class="the-register-banner__vignette" aria-hidden="true">
+        <img src="assets/blots/swatch_marigold.png" alt="" class="the-register-banner__wash the-register-banner__wash--left" />
+        <img src="assets/blots/swatch_walnut.png" alt="" class="the-register-banner__wash the-register-banner__wash--right" />
+      </div>
+      <div class="the-register-banner__inner reveal-on-scroll">
+        <span class="the-register-banner__eyebrow">The Register · The Dispatch</span>
+        <p class="the-register-banner__quote" style="margin-bottom:28px">
+          “Correspondence from the Atelier, when there is something worth sending.”
+        </p>
+        <form class="dispatch-form the-register-banner__form" onsubmit="handleNewsletterSubmit(event, 'homepage-dispatch-msg')">
+          <input
+            type="email"
+            class="dispatch-form__input the-register-banner__input"
+            placeholder="Your email address"
+            required
+            aria-label="Your email address"
+          />
+          <button type="submit" class="dispatch-form__btn the-register-banner__btn">
+            JOIN THE REGISTER
+          </button>
+        </form>
+        <div id="homepage-dispatch-msg" class="dispatch-feedback" style="margin-top:14px"></div>
+      </div>
+    </section>
+  `;
+}
+
+// ==========================================================================
+// VIEW 2: COLLECTION PAGE (SECTION 3 & PHASE 2 §8.8)
+// ==========================================================================
+function setTechniqueFilter(tech) {
+  STATE.techniqueFilter = tech;
+  renderApp();
+}
+
+function toggleWishlist(e, handle) {
+  e.stopPropagation();
+  if (STATE.wishlist.includes(handle)) {
+    STATE.wishlist = STATE.wishlist.filter(h => h !== handle);
+  } else {
+    STATE.wishlist.push(handle);
+  }
+  renderHeaderAndFooterNav();
+  renderApp();
+}
+
+function renderCollectionPage() {
+  const meta = COLLECTION_META[STATE.currentCollection] || COLLECTION_META["all-apparel"];
+
+  let pool = window.HARTWICK_PRODUCTS.filter(p => STATE.phase2Enabled || p.phase === 1);
+
+  let filtered = pool;
+  if (STATE.currentCollection === "all-apparel") {
+    filtered = pool.filter(p =>
+      ["skirts-dresses", "shirts-blouses", "trousers", "coats-accessories", "lounge"].includes(p.category)
+    );
+  } else if (STATE.currentCollection === "lot-0325") {
+    filtered = pool.filter(p => p.lot === "Lot 0325");
+  } else if (STATE.currentCollection === "lot-0924") {
+    filtered = pool.filter(p => p.lot === "Lot 0924");
+  } else if (STATE.currentCollection === "lot-0324") {
+    filtered = pool.filter(p => p.lot === "Lot 0324");
+  } else {
+    filtered = pool.filter(p => p.category === STATE.currentCollection);
+  }
+
+  // Phase 2 (§8.8): Advanced Filtering by Fabric / Technique
+  if (STATE.phase2Enabled && STATE.techniqueFilter !== "ALL") {
+    filtered = filtered.filter(p =>
+      (p.fabric_technique + " " + p.commercial_expression).toLowerCase().includes(STATE.techniqueFilter.toLowerCase())
+    );
+  }
+
+  const apparelTabs = [
+    { id: "all-apparel", label: "All Apparel" },
+    { id: "skirts-dresses", label: "Skirts & Dresses" },
+    { id: "shirts-blouses", label: "Shirts & Blouses" },
+    { id: "trousers", label: "Trousers" },
+    { id: "coats-accessories", label: "Coats & Accessories" },
+    { id: "lounge", label: "Lounge" },
+    { id: "fine-silk", label: "Fine Silk" },
+    { id: "fine-jewellery", label: "Fine Jewellery" }
+  ];
+
+  return `
+    <div class="collection-view view-enter">
+      <div class="collection-view__container">
+        <header class="collection-header reveal-on-scroll">
+          <div class="collection-header__wash-wrap" aria-hidden="true">
+            <img src="assets/blots/swatch_marigold.png" alt="" class="collection-header__wash" />
+          </div>
+          <span class="section-eyebrow" style="color:#582527">Hartwick Atelier Collection</span>
+          <h1 class="collection-header__title">${meta.title}</h1>
+          <p class="collection-header__desc">${meta.description}</p>
+        </header>
+
+        <nav class="collection-tabs" aria-label="Collection Categories">
+          ${apparelTabs.map(tab => `
+            <button
+              class="collection-tab ${STATE.currentCollection === tab.id ? "active" : ""}"
+              onclick="navigateTo('collection', '${tab.id}')"
+            >
+              ${tab.label}
+            </button>
+          `).join("")}
+        </nav>
+
+        <div class="product-grid collection-editorial-grid">
+          ${filtered.map((product, idx) => {
+            const isSoldOut = product.status === "Sold Out";
+            const secondaryImg = product.images[1] || product.images[0];
+            const delayClass = `reveal-delay-${(idx % 3) + 1}`;
+
+            return `
+              <article class="product-card collection-editorial-card reveal-on-scroll ${delayClass}" onclick="navigateTo('pdp', '${product.handle}')">
+                <div class="product-card__media">
+                  <img
+                    class="product-card__img product-card__img--primary"
+                    src="${product.images[0]}"
+                    alt="${product.title}"
+                    loading="lazy"
+                  />
+                  <img
+                    class="product-card__img product-card__img--secondary"
+                    src="${secondaryImg}"
+                    alt="${product.title} alternate view"
+                    loading="lazy"
+                  />
+                </div>
+                <div class="product-card__info">
+                  <h2 class="product-card__title">${product.title}</h2>
+                  <p class="product-card__expression">${product.commercial_expression}</p>
+                  <p class="product-card__price">
+                    ${formatPrice(product)}${isSoldOut ? " <span class='collection-card-status'>· Archive Edition</span>" : ""}
+                  </p>
+                </div>
+              </article>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================================================
+// VIEW 3: PRODUCT DETAIL PAGE (SECTION 4.1–4.10 & SECTION 7 EXACT ORDER)
+// ==========================================================================
+function openCraftGlossaryModal(key) {
+  const entry = CRAFT_GLOSSARY_DATA[key] || CRAFT_GLOSSARY_DATA["khadi"];
+  const body = document.getElementById("phase2-modal-body");
+  const backdrop = document.getElementById("phase2-modal-backdrop");
+  if (body && backdrop) {
+    body.innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        ${renderBotanicalBlot(key === "natural-dye" ? "emerald" : (key === "block-print" ? "pokeberry" : "marigold"), 54)}
+        <div>
+          <span class="section-eyebrow" style="margin-bottom:2px">Heritage Technique Record · #${entry.id || "01"}</span>
+          <h3 style="font-family:var(--font-serif);font-size:25px;font-weight:400;margin:0">${entry.title}</h3>
+        </div>
+      </div>
+      <p style="font-family:var(--font-serif);font-style:italic;font-size:16px;color:var(--text-secondary);margin-bottom:16px">${entry.subtitle}</p>
+      <p style="font-size:15px;line-height:1.8;color:var(--text-secondary);margin-bottom:24px">${entry.body}</p>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn-primary" onclick="closePhase2Modal();navigateToMastersTechnique('${entry.id || "01"}')">
+          Open in The Masters Glossary ⟶
+        </button>
+        <button class="btn-outline" onclick="closePhase2Modal()">Continue Viewing Product</button>
+      </div>
+    `;
+    backdrop.classList.add("open");
+  }
+}
+
+function openPrivateAppointmentModal(productTitle = "") {
+  const body = document.getElementById("phase2-modal-body");
+  const backdrop = document.getElementById("phase2-modal-backdrop");
+  if (body && backdrop) {
+    body.innerHTML = `
+      <div style="display:flex;align-items:center;gap:18px;margin-bottom:18px">
+        ${renderBotanicalBlot("goldenrod", 72)}
+        <div>
+          <span class="section-eyebrow" style="margin-bottom:2px">The Circle · Hartwick Atelier</span>
+          <h3 style="font-family:var(--font-serif);font-size:26px;font-weight:400;margin:0">Private Appointments</h3>
+        </div>
+      </div>
+      <p style="font-size:15px;color:var(--text-secondary);line-height:1.78;margin-bottom:18px">
+        The Circle invites you to book a one-on-one Private Appointment with our atelier for personalized styling, sizing guidance (XS–XL), bespoke measurements, or textile provenance${productTitle ? ` for <strong>${productTitle}</strong>` : ""}.
+      </p>
+      <form onsubmit="event.preventDefault();document.getElementById('appt-confirm-msg').innerHTML='Thank you. Our Private Client team at <strong>contact@HARTWICKATELIER.com</strong> will confirm your Private Appointment within 24 hours.';">
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" class="form-control" required placeholder="Your name" />
+        </div>
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" class="form-control" required placeholder="your@email.com" />
+        </div>
+        <div class="form-group">
+          <label>Private Appointment Preference</label>
+          <input type="text" class="form-control" value="${productTitle ? `Private Appointment: ${productTitle} (Size ${STATE.selectedSize})` : "Private Virtual Styling & Bespoke Sizing Consultation"}" />
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%">Request Private Appointment</button>
+        <div id="appt-confirm-msg" class="dispatch-feedback" style="margin-top:14px"></div>
+      </form>
+    `;
+    backdrop.classList.add("open");
+  }
+}
+
+function openSizeRecommendationModal() {
+  const body = document.getElementById("phase2-modal-body");
+  const backdrop = document.getElementById("phase2-modal-backdrop");
+  if (body && backdrop) {
+    body.innerHTML = `
+      <span class="section-eyebrow">Interactive Fit Assistant</span>
+      <h3 style="font-family:var(--font-serif);font-size:26px;font-weight:400;margin-bottom:14px">Find Your Hartwick Size (XS–XL)</h3>
+      <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px">Enter your measurements for an instant silhouette-specific recommendation.</p>
+      <div class="form-group">
+        <label>Height (cm)</label>
+        <input type="number" id="size-calc-height" class="form-control" value="170" />
+      </div>
+      <div class="form-group">
+        <label>Natural Waist (cm)</label>
+        <input type="number" id="size-calc-waist" class="form-control" value="71" />
+      </div>
+      <button class="btn-primary" style="width:100%" onclick="calculateRecommendedSize()">Calculate My Size</button>
+      <div id="size-calc-result" class="dispatch-feedback" style="margin-top:16px"></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border-subtle);display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <button class="btn-outline" style="width:100%" onclick="closePhase2Modal();returnToProductFromMasters()">← Return to Garment Page</button>
+      </div>
+    `;
+    backdrop.classList.add("open");
+  }
+}
+
+function calculateRecommendedSize() {
+  const waist = parseInt(document.getElementById("size-calc-waist")?.value || "71", 10);
+  let rec = "S";
+  if (waist < 67) rec = "XS";
+  else if (waist <= 72) rec = "S";
+  else if (waist <= 78) rec = "M";
+  else if (waist <= 84) rec = "L";
+  else rec = "XL";
+
+  STATE.selectedSize = rec;
+  const res = document.getElementById("size-calc-result");
+  if (res) {
+    res.innerHTML = `Recommended Hartwick Atelier Size: <strong>Size ${rec}</strong> (Selected automatically on product page).`;
+  }
+  renderApp();
+}
+
+function closePhase2Modal() {
+  const backdrop = document.getElementById("phase2-modal-backdrop");
+  if (backdrop) backdrop.classList.remove("open");
+}
+
+function scrollToElementById(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+
+function renderProductPage() {
+  const product = window.HARTWICK_PRODUCTS.find(p => p.handle === STATE.currentProductHandle) || window.HARTWICK_PRODUCTS[1] || window.HARTWICK_PRODUCTS[0];
+  const isSoldOut = product.status === "Sold Out";
+  const numStr = String(product.catalogNumber || 1).padStart(2, "0");
+
+  const rec1 = window.HARTWICK_PRODUCTS.find(p => p.handle === product.featured_product_1) || window.HARTWICK_PRODUCTS[2];
+  const rec2 = window.HARTWICK_PRODUCTS.find(p => p.handle === product.featured_product_2) || window.HARTWICK_PRODUCTS[3];
+  const rec3 = window.HARTWICK_PRODUCTS.find(p => p.handle !== product.handle && p.handle !== rec1.handle && p.handle !== rec2.handle) || window.HARTWICK_PRODUCTS[0];
+
+  const activeImage = product.images[STATE.selectedImageIndex] || product.images[0];
+
+  // Determine Botanical Dye Blot accent based on product colourway
+  const lowerText = (product.title + " " + product.commercial_expression + " " + product.short_description).toLowerCase();
+  let productBlot = "marigold";
+  if (lowerText.includes("emerald") || lowerText.includes("green")) productBlot = "emerald";
+  else if (lowerText.includes("indigo") || lowerText.includes("navy") || lowerText.includes("celeste")) productBlot = "indigo";
+  else if (lowerText.includes("pink") || lowerText.includes("rouge") || lowerText.includes("rose") || lowerText.includes("madder")) productBlot = "pokeberry";
+  else if (lowerText.includes("black") || lowerText.includes("walnut")) productBlot = "walnut";
+  else if (lowerText.includes("gold") || lowerText.includes("23k") || lowerText.includes("mustard")) productBlot = "goldenrod";
+
+  const styleTitle = (product.subtitle || product.title).toUpperCase();
+  const expressionShort = product.title.replace(product.subtitle || "", "").replace(/^[\s—-]+/, "") || product.commercial_expression;
+  const lotCode = product.lot ? product.lot.replace("Lot ", "LOT-") : "LOT-0325";
+  const isBotanicalAtelier = STATE.designConcept === "B";
+  const blotObj = BOTANICAL_BLOTS[productBlot] || BOTANICAL_BLOTS["marigold"];
+
+  // Expanded Fibre to Garment product data & Glossary loops (Client Action Item 4)
+  const ftg = product.fibre_to_garment || {
+    product_name: product.title,
+    sizing: `${product.sizes.join(", ")} (${product.fit_label})`,
+    fiber: product.fibre,
+    spinning: "Hand-drawn & twisted on the traditional wooden Charkha wheel (0 kWh)",
+    weaving: product.fabric_technique,
+    dyeing: product.commercial_expression,
+    construction: "Single-tailor heirloom construction · French seams & hand-turned hems",
+    glossary_loops: {
+      fibre_id: "01",
+      fibre_label: "01 Khadi",
+      spinning_id: "02",
+      spinning_label: "02 Hand Spun",
+      weaving_id: "03",
+      weaving_label: "03 Handwoven",
+      dyeing_id: "06",
+      dyeing_label: "06 Natural Dye",
+      construction_id: "12",
+      construction_label: "12 Heritage Finish"
+    }
+  };
+
+  return `
+    <div class="aloha-pdp view-enter">
+      <!-- 1. THREE-COLUMN ABOVE-THE-FOLD HERO (Pure Quiet Luxury: No dots in buttons, no boxed dots in top hero, no duties text, no appointment button under ATC) -->
+      <section class="aloha-pdp__hero-grid">
+        <!-- LEFT COLUMN: Breadcrumb, Title, Subtitle, Narrative, Spec Table, Clean Buttons -->
+        <div class="aloha-pdp__left">
+          <div>
+            <nav class="aloha-pdp__breadcrumb">
+              <button onclick="navigateTo('collection', 'all-apparel')">Apparel</button>
+              <span>/</span>
+              <button onclick="navigateTo('collection', '${product.category}')">${product.category.replace("-", " & ")}</button>
+            </nav>
+
+            <h1 class="aloha-pdp__title">${styleTitle}</h1>
+            <p class="aloha-pdp__subtitle">${product.commercial_expression}</p>
+
+            <!-- Storytelling Paragraphs -->
+            <div class="aloha-pdp__story">
+              <p>${product.long_description}</p>
+              <p>${product.short_description}</p>
+            </div>
+
+            <!-- 5-Row Interactive Spec Table (Loops directly into The Masters & Glossary) -->
+            <div class="aloha-pdp__spec-list">
+              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')" style="cursor:pointer" title="Click through to Fibre Record in The Masters">
+                <span class="aloha-pdp__spec-label">Fibre</span>
+                <span class="aloha-pdp__spec-val">${ftg.fiber} <span style="opacity:0.55;font-size:10px;margin-left:4px">↗</span></span>
+              </div>
+              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.spinning_id}')" style="cursor:pointer" title="Click through to Spinning Record in The Masters">
+                <span class="aloha-pdp__spec-label">Spinning</span>
+                <span class="aloha-pdp__spec-val">Charkha Handspun (0 kWh) <span style="opacity:0.55;font-size:10px;margin-left:4px">↗</span></span>
+              </div>
+              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.weaving_id}')" style="cursor:pointer" title="Click through to Weave Record in The Masters">
+                <span class="aloha-pdp__spec-label">Weave</span>
+                <span class="aloha-pdp__spec-val">${ftg.weaving} <span style="opacity:0.55;font-size:10px;margin-left:4px">↗</span></span>
+              </div>
+              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" style="cursor:pointer" title="Click through to Natural Dye Record in The Masters">
+                <span class="aloha-pdp__spec-label">Colour</span>
+                <span class="aloha-pdp__spec-val">${expressionShort} <span style="opacity:0.55;font-size:10px;margin-left:4px">↗</span></span>
+              </div>
+              <div class="aloha-pdp__spec-row" onclick="scrollToElementById('pdp-fibre-to-garment')" style="cursor:pointer" title="Scroll to From Fibre to Garment">
+                <span class="aloha-pdp__spec-label">Origin</span>
+                <span class="aloha-pdp__spec-val">${product.origin} <span style="opacity:0.55;font-size:10px;margin-left:4px">↓</span></span>
+              </div>
+            </div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
+              <button type="button" class="btn-outline" style="width:100%;justify-content:space-between" onclick="scrollToElementById('pdp-fibre-to-garment')">
+                <span>Explore Fibre to Garment</span>
+                <span>↓</span>
+              </button>
+              <button type="button" class="btn-primary" style="width:100%;justify-content:space-between" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')">
+                <span>Open Master &amp; Textile Glossary</span>
+                <span>⟶</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CENTER COLUMN: Pure Unobstructed Portrait Image + Thumbnail Switcher -->
+        <div class="aloha-pdp__center">
+          <div class="aloha-pdp__main-media">
+            <img src="${activeImage}" alt="${product.title}" />
+          </div>
+          <div class="aloha-pdp__thumbs">
+            ${product.images.map((img, idx) => `
+              <button
+                type="button"
+                class="aloha-pdp__thumb ${idx === STATE.selectedImageIndex ? "active" : ""}"
+                onclick="selectPdpImage(${idx})"
+                aria-label="View product image ${idx + 1}"
+              >
+                <img src="${img}" alt="${product.title} view ${idx + 1}" />
+              </button>
+            `).join("")}
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Price (No Duties text), Size XS–XL, Clean Add to Bag CTA (No appointment button below), Accordions -->
+        <div class="aloha-pdp__right">
+          <div class="aloha-pdp__price-block" style="padding-bottom:18px;border-bottom:1px solid var(--border-subtle)">
+            <span class="aloha-pdp__price">${formatPrice(product)} ${STATE.currency}</span>
+          </div>
+
+          <!-- Size Selector XS - XL -->
+          <div class="aloha-pdp__size-block">
+            <div class="aloha-pdp__size-top">
+              <span class="aloha-pdp__field-label" style="margin-bottom:0">Size &nbsp;·&nbsp; <strong style="color:var(--text-primary)">${STATE.selectedSize}</strong></span>
+              <button class="size-guide-trigger" onclick="navigateTo('size-guide')">Size Guide</button>
+            </div>
+            <div class="aloha-pdp__size-grid">
+              ${product.sizes.map(size => `
+                <button
+                  type="button"
+                  class="aloha-size-btn ${STATE.selectedSize === size ? "active" : ""}"
+                  onclick="selectPdpSize('${size}')"
+                >
+                  ${size}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+
+          <!-- Primary CTA Button (Ultra-clean, no button below it) -->
+          <button
+            type="button"
+            class="aloha-pdp__atc-btn"
+            ${isSoldOut ? "disabled" : ""}
+            onclick="addToCart('${product.handle}')"
+          >
+            ${isSoldOut ? "Archive Edition" : `Add Size ${STATE.selectedSize} to Bag — ${formatPrice(product)}`}
+          </button>
+
+          <!-- Right-column Accordions: How It Fits & Delivery & Returns -->
+          <div class="pdp-accordions" style="border-top:none;margin-top:16px;margin-bottom:0">
+            <div class="accordion-item" id="acc-fit-right">
+              <button class="accordion-trigger" onclick="toggleAccordion('acc-fit-right')">
+                <span>How It Fits</span>
+                <span class="accordion-icon">+</span>
+              </button>
+              <div class="accordion-content">
+                <p><strong>${product.fit_label}</strong></p>
+                <ul class="fit-bullets">
+                  ${product.fit_bullets.map(b => `<li>${b}</li>`).join("")}
+                </ul>
+              </div>
+            </div>
+            <div class="accordion-item" id="acc-delivery-right">
+              <button class="accordion-trigger" onclick="toggleAccordion('acc-delivery-right')">
+                <span>Delivery &amp; Returns</span>
+                <span class="accordion-icon">+</span>
+              </button>
+              <div class="accordion-content">
+                <p>Dispatched via insured DHL Express across the EU, UK, and international destinations. Complimentary shipping on orders over €500. Returns accepted within 14 days of delivery.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SMART EARLY-SCROLL CONVERSION TOUCHPOINT: Private Lot Release Notice in Hero Right Column -->
+          <div class="pdp-inline-register-card">
+            <span class="pdp-inline-register-card__eyebrow">The Register · Lot Release Notice</span>
+            <p class="pdp-inline-register-card__text">
+              Woven in limited numbered lots. Leave your address for private notice when new loom editions are released.
+            </p>
+            <form class="pdp-inline-register-card__form" onsubmit="handleNewsletterSubmit(event, 'pdp-hero-register-msg')">
+              <input
+                type="email"
+                class="pdp-inline-register-card__input"
+                placeholder="Your email address"
+                required
+                aria-label="Email address for lot release notice"
+              />
+              <button type="submit" class="pdp-inline-register-card__btn">Join →</button>
+            </form>
+            <div id="pdp-hero-register-msg" class="dispatch-feedback" style="margin-top:8px;font-size:12px"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. FULL-BLEED MASTER'S TOOL BANNER -->
+      <section class="masters-tool-banner">
+        <img
+          class="masters-tool-banner__img"
+          src="${SQS_CDN}3a6786b9-45ce-459e-83cb-4bee1d2e3554/184_HARTWICK_STYLE_FABRIC4R1A8940.jpg"
+          alt="The Master's Tool — The Charkha"
+        />
+        <div class="masters-tool-banner__overlay">
+          <div>
+            <h2 class="masters-tool-banner__title">HAND SPUN<br/>FROM FIBRE TO YARN</h2>
+            <p class="masters-tool-banner__copy">
+              Before a single thread is placed on the loom, raw natural fibre is drawn out and twisted by hand on the charkha spinning wheel—creating a living yarn that breathes with human rhythm.
+            </p>
+          </div>
+          <button class="masters-tool-banner__cta" onclick="navigateToMastersTechnique('02')">
+            Visit The Masters ⟶
+          </button>
+        </div>
+      </section>
+
+      <!-- 3. ORIGIN + PROCESS — HORIZONTAL 5-COLUMN "FROM FIBRE TO GARMENT" WITH ALTERNATING BOTANICAL DOTS & 3D HOVER DEPTH -->
+      <section class="ftg-horizontal-section" id="pdp-fibre-to-garment">
+        <div class="ftg-horizontal-header">
+          <div>
+            <h2 class="ftg-artistic-title">FROM FIBRE TO GARMENT</h2>
+            <p class="ftg-artistic-lead">
+              Hover over any stage below to inspect the five foundational steps of <em>${ftg.product_name}</em>—and click any column to open its corresponding Master Dossier.
+            </p>
+          </div>
+          <button type="button" class="btn-outline" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')">
+            Open Full Master Glossary ⟶
+          </button>
+        </div>
+
+        <!-- 5-COLUMN HORIZONTAL ALTERNATING PROCESS TRACK WITH 3D DEPTH HOVER:
+             THE TRUE 5 CHRONOLOGICAL STEPS FROM FIBRE TO GARMENT:
+             01 Fibre -> 02 Spinning -> 03 Weaving -> 04 Botanical Dyeing -> 05 Garment Construction -->
+        <div class="ftg-3d-track" onmouseleave="resetAllFtgCols(this)">
+
+          <!-- STEP 01: FIBRE (Top — Medium-Large 54px Dot + Tiny 20px Satellite Droplet, Left-Shifted) -->
+          <article class="ftg-3d-col ftg-3d-col--top-dot ftg-3d-col--v1" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')" title="Click to inspect ${ftg.glossary_loops.fibre_label} in The Masters">
+            <div class="ftg-3d-col__inner">
+              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v1">
+                <div class="ftg-3d-col__dot-orb ftg-dot-orb--md-lg">
+                  <img src="assets/blots/swatch_marigold.png" alt="" class="ftg-3d-col__wash" />
+                  <img src="assets/blots/dot_iron_rust.png" alt="01 Fibre Botanical Dot" class="ftg-3d-col__dot" />
+                  <img src="assets/blots/dot_sand_speckle.png" alt="" class="ftg-3d-col__satellite ftg-satellite--tr" />
+                </div>
+                <span class="ftg-3d-col__stem"></span>
+              </div>
+
+              <div class="ftg-3d-col__card">
+                <div class="ftg-3d-col__meta-top">
+                  <span class="ftg-3d-col__step">01 · FIBRE</span>
+                  <span class="ftg-3d-col__roman">I</span>
+                </div>
+                <h3 class="ftg-3d-col__title">Raw Natural Fibre</h3>
+                <p class="ftg-3d-col__subtitle">${ftg.fiber}</p>
+                <p class="ftg-3d-col__body">
+                  Harvested from indigenous natural fibres cultivated in small lots for organic breathability, subtle slub, and generational longevity.
+                </p>
+                <div class="ftg-3d-col__footer">
+                  <span>Loop #${ftg.glossary_loops.fibre_id} · Fibre</span>
+                  <strong>Inspect ↗</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- STEP 02: SPINNING (Bottom — Petite 36px Jewel Specimen Dot, Right-Shifted) -->
+          <article class="ftg-3d-col ftg-3d-col--bottom-dot ftg-3d-col--v2" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.spinning_id}')" title="Click to inspect ${ftg.glossary_loops.spinning_label} in The Masters">
+            <div class="ftg-3d-col__inner">
+              <div class="ftg-3d-col__card">
+                <div class="ftg-3d-col__meta-top">
+                  <span class="ftg-3d-col__step">02 · SPINNING</span>
+                  <span class="ftg-3d-col__roman">II</span>
+                </div>
+                <h3 class="ftg-3d-col__title">Charkha Spun</h3>
+                <p class="ftg-3d-col__subtitle">100% Hand-Turned · 0 kWh</p>
+                <p class="ftg-3d-col__body">
+                  ${ftg.spinning}. Low-tension hand-spinning preserves microscopic air pockets so the yarn breathes naturally.
+                </p>
+                <div class="ftg-3d-col__footer">
+                  <span>Loop #${ftg.glossary_loops.spinning_id} · Spinning</span>
+                  <strong>Inspect ↗</strong>
+                </div>
+              </div>
+
+              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v2">
+                <span class="ftg-3d-col__stem ftg-stem--short"></span>
+                <div class="ftg-3d-col__dot-orb ftg-dot-orb--sm">
+                  <img src="assets/blots/dot_sand_speckle.png" alt="" class="ftg-3d-col__wash" />
+                  <img src="assets/blots/dot_goldenrod.png" alt="02 Spinning Botanical Dot" class="ftg-3d-col__dot" />
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- STEP 03: WEAVING (Top — Sculptural 64px Atelier Seal Overlapping Card Edge) -->
+          <article class="ftg-3d-col ftg-3d-col--top-dot ftg-3d-col--v3" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.weaving_id}')" title="Click to inspect ${ftg.glossary_loops.weaving_label} in The Masters">
+            <div class="ftg-3d-col__inner">
+              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v3">
+                <div class="ftg-3d-col__dot-orb ftg-dot-orb--xl">
+                  <img src="assets/blots/swatch_walnut.png" alt="" class="ftg-3d-col__wash" />
+                  <img src="assets/blots/dot_walnut.png" alt="03 Weaving Botanical Dot" class="ftg-3d-col__dot" />
+                  <img src="assets/blots/dot_goldenrod.png" alt="" class="ftg-3d-col__satellite ftg-satellite--bl" />
+                </div>
+              </div>
+
+              <div class="ftg-3d-col__card">
+                <div class="ftg-3d-col__meta-top">
+                  <span class="ftg-3d-col__step">03 · WEAVING</span>
+                  <span class="ftg-3d-col__roman">III</span>
+                </div>
+                <h3 class="ftg-3d-col__title">Pit Loom Woven</h3>
+                <p class="ftg-3d-col__subtitle">${ftg.weaving}</p>
+                <p class="ftg-3d-col__body">
+                  Interlaced throw by throw on wooden pit looms without electricity (3–5m per day), uniting warp and weft with a true woven selvedge.
+                </p>
+                <div class="ftg-3d-col__footer">
+                  <span>Loop #${ftg.glossary_loops.weaving_id} · Weaving</span>
+                  <strong>Inspect ↗</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- STEP 04: BOTANICAL DYEING (Bottom — Expressive 58px Dye Vat Dot + 24px Mordant Droplet, Left-Shifted) -->
+          <article class="ftg-3d-col ftg-3d-col--bottom-dot ftg-3d-col--v4" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" title="Click to inspect ${ftg.glossary_loops.dyeing_label} in The Masters">
+            <div class="ftg-3d-col__inner">
+              <div class="ftg-3d-col__card">
+                <div class="ftg-3d-col__meta-top">
+                  <span class="ftg-3d-col__step">04 · DYEING</span>
+                  <span class="ftg-3d-col__roman">IV</span>
+                </div>
+                <h3 class="ftg-3d-col__title">Botanical Dye Vat</h3>
+                <p class="ftg-3d-col__subtitle">${blotObj.name}</p>
+                <p class="ftg-3d-col__body">
+                  Steeped in living fermentation vats of indigenous roots, flowers, and mineral mordants (${blotObj.lotCode}) and cured in open sun and air.
+                </p>
+                <div class="ftg-3d-col__footer">
+                  <span>Loop #${ftg.glossary_loops.dyeing_id} · Dyeing</span>
+                  <strong>Inspect ↗</strong>
+                </div>
+              </div>
+
+              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v4">
+                <span class="ftg-3d-col__stem"></span>
+                <div class="ftg-3d-col__dot-orb ftg-dot-orb--lg">
+                  <img src="${blotObj.swatch}" alt="" class="ftg-3d-col__wash" />
+                  <img src="${blotObj.img}" alt="04 Botanical Dyeing Dot" class="ftg-3d-col__dot" />
+                  <img src="assets/blots/dot_apricot.png" alt="" class="ftg-3d-col__satellite ftg-satellite--br" />
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- STEP 05: GARMENT CONSTRUCTION (Top — Refined 42px Tailoring Dot, Right-Shifted) -->
+          <article class="ftg-3d-col ftg-3d-col--top-dot ftg-3d-col--v5" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.construction_id}')" title="Click to inspect ${ftg.glossary_loops.construction_label} in The Masters">
+            <div class="ftg-3d-col__inner">
+              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v5">
+                <div class="ftg-3d-col__dot-orb ftg-dot-orb--md-sm">
+                  <img src="assets/blots/swatch_pokeberry.png" alt="" class="ftg-3d-col__wash" />
+                  <img src="assets/blots/dot_apricot.png" alt="05 Garment Construction Dot" class="ftg-3d-col__dot" />
+                </div>
+                <span class="ftg-3d-col__stem ftg-stem--short"></span>
+              </div>
+
+              <div class="ftg-3d-col__card">
+                <div class="ftg-3d-col__meta-top">
+                  <span class="ftg-3d-col__step">05 · CONSTRUCTION</span>
+                  <span class="ftg-3d-col__roman">V</span>
+                </div>
+                <h3 class="ftg-3d-col__title">Single-Tailor Craft</h3>
+                <p class="ftg-3d-col__subtitle">Sizes ${product.sizes.join(" · ")}</p>
+                <p class="ftg-3d-col__body">
+                  ${ftg.construction}. Cut and assembled from start to finish by a single master tailor to endure for decades.
+                </p>
+                <div class="ftg-3d-col__footer">
+                  <span>Loop #${ftg.glossary_loops.construction_id} · Tailoring</span>
+                  <strong>Inspect ↗</strong>
+                </div>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- 4. LOT RECORD — THE PRODUCTION RECORD (DIRECTION 2: SEAMLESS PAGE BACKGROUND WITH ARTISTIC WATERCOLOR WASH & CLEAN 6-STAMP GRID) -->
+      <section class="production-record ${isBotanicalAtelier ? "botanical-certificate-box" : ""}" id="pdp-production-record">
+        ${isBotanicalAtelier ? `
+          <!-- Artistic Watercolor Wash Floating Directly on the Page Background -->
+          <div class="passport-watercolor-backdrop" aria-hidden="true">
+            <img src="${blotObj.swatch}" alt="" class="passport-bg-wash passport-bg-wash--one" />
+            <img src="assets/blots/swatch_marigold.png" alt="" class="passport-bg-wash passport-bg-wash--two" />
+          </div>
+        ` : ""}
+
+        <div class="passport-editorial-col">
+          <span class="fibre-to-garment__eyebrow">${isBotanicalAtelier ? "✦ Official Atelier Provenance Passport" : "Lot & Master Record"}</span>
+          <h2 class="fibre-to-garment__title" style="margin-bottom:18px">${isBotanicalAtelier ? "ARCHIVAL GARMENT PASSPORT" : "THE PRODUCTION RECORD"}</h2>
+          <p class="passport-editorial-lead">
+            ${isBotanicalAtelier
+              ? "Each Hartwick Atelier piece carries a numbered 6-stamp Atelier Provenance Passport documenting its silhouette, dye bath, loom yardage, and guild lineage."
+              : "Every Hartwick Atelier garment is produced in small numbered lots and archived by its textile lineage, dye bath, and workshop origin. Click any record row to inspect the Master & Textile Glossary."}
+          </p>
+
+          <div class="passport-workbench-actions">
+            <button
+              type="button"
+              class="btn-primary passport-gateway-cta"
+              onclick="navigateToMastersTechnique('01')"
+            >
+              ${isBotanicalAtelier ? "OPEN MASTER DOSSIER WORKBENCH ↗" : "Open Full Master & Textile Glossary ⟶"}
+            </button>
+          </div>
+        </div>
+
+        ${isBotanicalAtelier ? `
+          <!-- DIRECTION 2 UX: Clean 2x3 Interactive Provenance Stamp Cards Grid -->
+          <div class="passport-stamp-grid">
+            <div class="passport-stamp-card" onclick="navigateToMastersTechnique('09')" title="Inspect 09 Single-Tailor Construction">
+              <div class="passport-stamp-card__top">
+                <span class="passport-stamp-card__num">STAMP 01 · SILHOUETTE</span>
+                <span class="passport-stamp-card__seal">#${numStr}</span>
+              </div>
+              <div class="passport-stamp-card__val">${product.subtitle || product.title}</div>
+              <div class="passport-stamp-card__footer">
+                <span>Single-Tailor Construction</span>
+                <strong>Loop #09 ↗</strong>
+              </div>
+            </div>
+
+            <div class="passport-stamp-card passport-stamp-card--clickable" onclick="navigateToMastersTechnique('06')" title="Open 06 Natural Dye Dossier">
+              <div class="passport-stamp-card__top">
+                <span class="passport-stamp-card__num">STAMP 02 · BOTANICAL DYE VAT</span>
+                <span class="passport-stamp-card__seal">${blotObj.lotCode}</span>
+              </div>
+              <div class="passport-stamp-card__val">${expressionShort} — ${product.commercial_expression}</div>
+              <div class="passport-stamp-card__footer">
+                <span>Inspect Dye Dossier #06</span>
+                <strong>Open Vat ↗</strong>
+              </div>
+            </div>
+
+            <div class="passport-stamp-card passport-stamp-card--clickable" onclick="navigateToMastersTechnique('03')" title="Open 03 Handwoven Dossier">
+              <div class="passport-stamp-card__top">
+                <span class="passport-stamp-card__num">STAMP 03 · LOOM &amp; FIBRE</span>
+                <span class="passport-stamp-card__seal">0 kWh Loom</span>
+              </div>
+              <div class="passport-stamp-card__val">${product.fibre} · ${product.fabric_technique}</div>
+              <div class="passport-stamp-card__footer">
+                <span>Inspect Loom Dossier #03</span>
+                <strong>Open Loom ↗</strong>
+              </div>
+            </div>
+
+            <div class="passport-stamp-card" onclick="navigateToMastersTechnique('02')" title="Inspect 02 Hand-Spun Lineage">
+              <div class="passport-stamp-card__top">
+                <span class="passport-stamp-card__num">STAMP 04 · ARCHIVE CATALOG</span>
+                <span class="passport-stamp-card__seal">Verified</span>
+              </div>
+              <div class="passport-stamp-card__val">${product.sku} · Catalog #${numStr}</div>
+              <div class="passport-stamp-card__footer">
+                <span>Numbered Archive Registry</span>
+                <strong>Loop #02 ↗</strong>
+              </div>
+            </div>
+
+            <div class="passport-stamp-card" onclick="navigateToMastersTechnique('04')" title="Inspect Loom Yardage & Lot Edition">
+              <div class="passport-stamp-card__top">
+                <span class="passport-stamp-card__num">STAMP 05 · EDITION LOT</span>
+                <span class="passport-stamp-card__seal">${product.status}</span>
+              </div>
+              <div class="passport-stamp-card__val">${lotCode} · Small-Batch Edition</div>
+              <div class="passport-stamp-card__footer">
+                <span>Limited Loom Yardage</span>
+                <strong>Loop #04 ↗</strong>
+              </div>
+            </div>
+
+            <div class="passport-stamp-card passport-stamp-card--clickable" onclick="navigateToMastersTechnique('01')" title="Open 01 Master Guild Dossier">
+              <div class="passport-stamp-card__top">
+                <span class="passport-stamp-card__num">STAMP 06 · MASTER GUILD ORIGIN</span>
+                <span class="passport-stamp-card__seal">Lineage</span>
+              </div>
+              <div class="passport-stamp-card__val">${product.origin}</div>
+              <div class="passport-stamp-card__footer">
+                <span>Inspect Guild Dossier #01</span>
+                <strong>Open Guild ↗</strong>
+              </div>
+            </div>
+          </div>
+        ` : `
+          <!-- DIRECTION 1 UX: Crisp 6-Row Swiss Architectural Ledger Table -->
+          <div class="production-record__table">
+            <div class="production-record__row">
+              <span class="production-record__label">Style</span>
+              <span class="production-record__val">${product.subtitle || product.title}</span>
+            </div>
+            <div class="production-record__row" onclick="navigateToMastersTechnique('06')" style="cursor:pointer" title="Click to view 06 Natural Dye in The Masters">
+              <span class="production-record__label">Expression &amp; Dye</span>
+              <span class="production-record__val">${expressionShort} — ${product.commercial_expression} <span style="text-decoration:underline;font-size:10px;margin-left:6px">View Dye Record ↗</span></span>
+            </div>
+            <div class="production-record__row" onclick="navigateToMastersTechnique('03')" style="cursor:pointer" title="Click to view 03 Handwoven in The Masters">
+              <span class="production-record__label">Textile &amp; Master</span>
+              <span class="production-record__val">${product.fibre} · ${product.fabric_technique} <span style="text-decoration:underline;font-size:10px;margin-left:6px">View Loom Record ↗</span></span>
+            </div>
+            <div class="production-record__row">
+              <span class="production-record__label">Product Reference</span>
+              <span class="production-record__val">${product.sku} · Catalog #${numStr}</span>
+            </div>
+            <div class="production-record__row">
+              <span class="production-record__label">Lot / Quantity</span>
+              <span class="production-record__val">${lotCode} · Limited Small-Batch Edition (${product.status})</span>
+            </div>
+            <div class="production-record__row" onclick="navigateToMastersTechnique('01')" style="cursor:pointer" title="Click to view Master Guilds in The Masters">
+              <span class="production-record__label">Production / Completion</span>
+              <span class="production-record__val">${product.origin} <span style="text-decoration:underline;font-size:10px;margin-left:6px">Master Guild ↗</span></span>
+            </div>
+          </div>
+        `}
+      </section>
+
+      <!-- 5. WOVEN STONE BAND ACCORDIONS: CARE & REPAIR + SHIPPING & RETURNS -->
+      <section class="pdp-woven-band">
+        <div class="pdp-woven-band__inner">
+          <div class="accordion-item" id="acc-band-care" style="border-top:1px solid var(--border-strong)">
+            <button class="accordion-trigger" onclick="toggleAccordion('acc-band-care')">
+              <span>Care &amp; Repair</span>
+              <span class="accordion-icon">+</span>
+            </button>
+            <div class="accordion-content">
+              <p>Handwoven and naturally dyed textiles are living cloths. Gentle cold hand wash using pH-neutral soap or specialist eco dry clean. Dry flat in the shade away from direct sunlight. Our atelier offers complimentary heirloom repair guidance for the life of the garment.</p>
+            </div>
+          </div>
+
+          <div class="accordion-item" id="acc-band-shipping" style="border-top:1px solid var(--border-strong)">
+            <button class="accordion-trigger" onclick="toggleAccordion('acc-band-shipping')">
+              <span>Shipping &amp; Returns</span>
+              <span class="accordion-icon">+</span>
+            </button>
+            <div class="accordion-content">
+              <p>Dispatched from our European studio via insured DHL Express. We accept returns on unworn pieces with original lot tags attached within 14 days of receipt. <button onclick="navigateTo('returns-policy')" style="background:none;border:none;text-decoration:underline;cursor:pointer;font-size:inherit">Read Full Returns Policy →</button></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. RELATED WORKS ("WEAR IT WITH" CROSS-SELL — Clean Editorial Gallery View) -->
+      <section class="related-works-section">
+        <div class="related-works-header">
+          <div>
+            <span class="fibre-to-garment__eyebrow">Wear It With</span>
+            <h2 class="fibre-to-garment__title">RELATED WORKS</h2>
+          </div>
+          <button type="button" class="related-works-action" onclick="navigateTo('collection', 'all-apparel')">VIEW ENTIRE COLLECTION →</button>
+        </div>
+
+        <div class="product-grid related-works-grid">
+          ${[rec1, rec2, rec3].map(rec => `
+            <article class="product-card related-work-card" onclick="navigateTo('pdp', '${rec.handle}')">
+              <div class="product-card__media">
+                <img class="product-card__img product-card__img--primary" src="${rec.images[0]}" alt="${rec.title}" />
+                <img class="product-card__img product-card__img--secondary" src="${rec.images[1] || rec.images[0]}" alt="${rec.title}" />
+              </div>
+              <div class="product-card__info">
+                <h3 class="product-card__title">${rec.title}</h3>
+                <p class="product-card__expression">${rec.commercial_expression}</p>
+                <p class="product-card__price">${formatPrice(rec)}</p>
+              </div>
+            </article>
+          `).join("")}
+        </div>
+      </section>
+
+      <!-- 7. THE REGISTER (WOVEN STONE #E2DBD0 BANNER — SLIGHTLY DARKER THAN PAGE WITH SUBTLE WATERCOLOR WASH) -->
+      <section class="the-register-banner" id="pdp-the-register">
+        <div class="the-register-banner__vignette" aria-hidden="true">
+          <img src="${blotObj.swatch}" alt="" class="the-register-banner__wash the-register-banner__wash--left" />
+          <img src="assets/blots/swatch_marigold.png" alt="" class="the-register-banner__wash the-register-banner__wash--right" />
+        </div>
+        <div class="the-register-banner__inner">
+          <span class="the-register-banner__eyebrow">The Register · The Dispatch</span>
+          <p class="the-register-banner__quote">
+            “Correspondence from the Atelier, when there is something worth sending.”
+          </p>
+          <form class="dispatch-form the-register-banner__form" onsubmit="handleNewsletterSubmit(event, 'pdp-register-msg')">
+            <input
+              type="email"
+              class="dispatch-form__input the-register-banner__input"
+              placeholder="Your email address"
+              required
+              aria-label="Your email address"
+            />
+            <button type="submit" class="dispatch-form__btn the-register-banner__btn">
+              JOIN THE REGISTER
+            </button>
+          </form>
+          <div id="pdp-register-msg" class="dispatch-feedback" style="margin-top:14px"></div>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function toggleGlossaryRow(id) {
+  const row = document.getElementById(`glossary-row-${id}`);
+  if (row) {
+    row.classList.toggle("open");
+  }
+}
+
+// ==========================================================================
+// VIEW 4: THE MASTERS & GLOSSARY PAGE (TWO COMPLETELY DISTINCT UX ARCHITECTURES)
+// - Direction 1 (Concept A): Linear Architectural Museum Monograph + 4-Chapter Bar
+//   + 3-Column Swiss Grid + Filterable 12-Row Horizontal Accordion Table
+// - Direction 2 (Concept B): Interactive Studio Workbench + Split-Screen Master
+//   Dossier Explorer (01–12 Specimen Deck + Live Open Folio) + Horizontal
+//   Herbarium Specimen Sheets + Interactive 4-Stage Atelier Process Switcher
+// ==========================================================================
+function renderTheMasters() {
+  const isBotanicalAtelier = STATE.designConcept === "B";
+
+  const botanicalSpecimens = [
+    {
+      img: "assets/blots/dot_iron_rust.png",
+      swatch: "assets/blots/swatch_marigold.png",
+      title: "Marigold & Fermented Iron",
+      shortLabel: "01 Marigold",
+      code: "VAT SPECIMEN 01",
+      origin: "Rajasthan & Kutch Guilds",
+      mordant: "Fermented Iron (Kasim) & Jaggery",
+      note: "Sun-harvested Tagetes erecta petals steeped with aged iron to yield warm burnt sienna and deep rust.",
+      productHandle: "tribeca-checkerboard-navy",
+      glossaryId: "06"
+    },
+    {
+      img: "assets/blots/dot_goldenrod.png",
+      swatch: "assets/blots/swatch_marigold.png",
+      title: "Goldenrod & Mineral Alum",
+      shortLabel: "02 Goldenrod",
+      code: "VAT SPECIMEN 02",
+      origin: "West Bengal Silk Looms",
+      mordant: "Mineral Alum & Myrobalan",
+      note: "Luminous solar ochre fixed onto unbleached wild Matka silk and handspun Khadi cotton.",
+      productHandle: "tribeca-matka-silk-emerald",
+      glossaryId: "02"
+    },
+    {
+      img: "assets/blots/dot_apricot.png",
+      swatch: "assets/blots/swatch_pokeberry.png",
+      title: "Madder Root & Pokeberry",
+      shortLabel: "03 Madder",
+      code: "VAT SPECIMEN 03",
+      origin: "Bagru Master Printers",
+      mordant: "Alum Earth & Pomegranate Bark",
+      note: "Rubia cordifolia root simmered in clay vessels for botanical rose, terracotta, and soft apricot tones.",
+      productHandle: "palma-fresh-pink-cotton",
+      glossaryId: "04"
+    },
+    {
+      img: "assets/blots/dot_indigo_moss.png",
+      swatch: "assets/blots/dot_indigo_moss.png",
+      title: "Wild Indigo & Pomegranate",
+      shortLabel: "04 Indigo",
+      code: "VAT SPECIMEN 04",
+      origin: "Kutch Living Vat",
+      mordant: "Tamarind Seed & Alkaline Ash",
+      note: "Living fermentation of Indigofera tinctoria over-dyed with pomegranate rind for deep emerald and midnight.",
+      productHandle: "tribeca-matka-silk-emerald",
+      glossaryId: "06"
+    },
+    {
+      img: "assets/blots/dot_walnut.png",
+      swatch: "assets/blots/swatch_walnut.png",
+      title: "Black Walnut Hull & Ash",
+      shortLabel: "05 Walnut",
+      code: "VAT SPECIMEN 05",
+      origin: "Northern Handloom Guilds",
+      mordant: "Natural Tannin & Wood Ash",
+      note: "Rich organic umber and espresso tones drawn from matured walnut hulls without synthetic fixatives.",
+      productHandle: "samarkand-black-marble-inlay",
+      glossaryId: "03"
+    },
+    {
+      img: "assets/blots/dot_sand_speckle.png",
+      swatch: "assets/blots/swatch_marigold.png",
+      title: "Myrobalan & Tamarind Seed",
+      shortLabel: "06 Myrobalan",
+      code: "VAT SPECIMEN 06",
+      origin: "First Pre-Mordant Bath",
+      mordant: "Terminalia chebula Fruit",
+      note: "The essential first Ayurvedic bath that prepares raw handwoven cloth to bond permanently with plant colour.",
+      productHandle: "palma-fine-silk-block-print",
+      glossaryId: "01"
+    }
+  ];
+
+  const activeSpec = botanicalSpecimens[STATE.activeDyeLabIndex] || botanicalSpecimens[0];
+  const linkedProduct = window.HARTWICK_PRODUCTS.find(p => p.handle === activeSpec.productHandle) || window.HARTWICK_PRODUCTS[0];
+
+  // Active item for Direction 2's Split-Screen Master Dossier Workbench
+  const activeDossierItem = HERITAGE_GLOSSARY_LIST.find(item => item.id === STATE.activeGlossaryId) || HERITAGE_GLOSSARY_LIST[0];
+  const activeDossierBlot = BOTANICAL_BLOTS[activeDossierItem.blot] || BOTANICAL_BLOTS["marigold"];
+
+  // Map each glossary technique to a representative garment for Direction 2's live dossier garment connection
+  const dossierProductMap = {
+    "01": "palma-skirt-indigo-khadi",
+    "02": "tribeca-matka-silk-emerald",
+    "03": "tribeca-checkerboard-navy",
+    "04": "palma-fine-silk-block-print",
+    "05": "tribeca-checkerboard-navy",
+    "06": "tribeca-matka-silk-emerald",
+    "07": "palma-fresh-pink-cotton",
+    "08": "tribeca-matka-silk-emerald",
+    "09": "samarkand-black-marble-inlay",
+    "10": "samarkand-black-marble-inlay",
+    "11": "palma-fine-silk-block-print",
+    "12": "samarkand-black-marble-inlay"
+  };
+  const dossierGarmentHandle = dossierProductMap[activeDossierItem.id] || STATE.lastPdpHandle || "tribeca-matka-silk-emerald";
+  const dossierGarment = window.HARTWICK_PRODUCTS.find(p => p.handle === dossierGarmentHandle) || window.HARTWICK_PRODUCTS[0];
+
+  // 4 Interactive Atelier Stages for Direction 2's Process Storyboard
+  const atelierStages = [
+    {
+      stageNum: "STAGE I · 01 / HANDSPINNING",
+      shortTitle: "I. Charkha Spinning",
+      headline: "A Moment Held — Drawn & Twisted by Hand",
+      tool: "Traditional Wooden Charkha Wheel",
+      guild: "Bengal & Bihar Spinners' Guilds",
+      cadence: "Electricity-Free · Human Rhythm",
+      blotImg: "assets/blots/dot_goldenrod.png",
+      swatchImg: "assets/blots/swatch_marigold.png",
+      photo: SQS_CDN + "3a6786b9-45ce-459e-83cb-4bee1d2e3554/184_HARTWICK_STYLE_FABRIC4R1A8940.jpg",
+      copy: "Where industrial spinning erases character in pursuit of mechanical uniformity, the hand-turned charkha wheel honours the natural breath, micro-air pockets, and subtle slub of raw cotton and wild Matka silk.",
+      glossaryId: "02",
+      productHandle: "tribeca-matka-silk-emerald"
+    },
+    {
+      stageNum: "STAGE II · 02 / HANDWEAVING",
+      shortTitle: "II. Pit Loom Weaving",
+      headline: "A Process in Motion — Warp & Weft in Dialogue",
+      tool: "Hand-Thrown Wooden Pit Loom",
+      guild: "Master Weavers of Kutch & Bengal",
+      cadence: "3 to 5 Metres Woven Per Day",
+      blotImg: "assets/blots/dot_iron_rust.png",
+      swatchImg: "assets/blots/swatch_walnut.png",
+      photo: SQS_CDN + "8b35627c-73f1-47cc-8e79-c94a0388f034/125_HARTWICK_HANDWOVEN_TOKYO_SHIRT_IKAT.jpg",
+      copy: "Passed throw by throw across the pit loom without electricity, warp and weft unite at a human pace—creating heirloom cloth that drapes with supple architectural structure and carries the signature of its maker.",
+      glossaryId: "03",
+      productHandle: "tribeca-checkerboard-navy"
+    },
+    {
+      stageNum: "STAGE III · 03 / BLOCK PRINTING",
+      shortTitle: "III. The Printing Table",
+      headline: "At the Printing Table — 16 Sequential Impressions",
+      tool: "Seasoned Hand-Carved Teakwood Blocks",
+      guild: "Bagru & Jaipur Master Printers",
+      cadence: "24h Open-Air Rest Between Layers",
+      blotImg: "assets/blots/dot_apricot.png",
+      swatchImg: "assets/blots/swatch_pokeberry.png",
+      photo: SQS_CDN + "0c0b1cbc-4c3e-43ad-b43d-1c2c4916289f/080_HARTWICK_OKANAGAN_ROBE_KALAMALKA_BLOCKPRINT.jpg",
+      copy: "Each block print begins as a seasoned teakwood block carved by hand, dipped into natural plant and mineral vats, and stamped layer by layer across metres of silk and Khadi. Between each of the 16 impressions, the cloth rests for a full day in open air.",
+      glossaryId: "04",
+      productHandle: "palma-fine-silk-block-print"
+    },
+    {
+      stageNum: "STAGE IV · 04 / BOTANICAL ALCHEMY",
+      shortTitle: "IV. Living Dye Vats",
+      headline: "Sun, Water & Earth — Ayurvedic Dye Alchemy",
+      tool: "Clay Fermentation Vats & Copper Vessels",
+      guild: "Master Natural Colorists",
+      cadence: "Solar Curing & Mineral Fixation",
+      blotImg: "assets/blots/dot_indigo_moss.png",
+      swatchImg: "assets/blots/swatch_marigold.png",
+      photo: SQS_CDN + "643566b4-c934-4030-922c-ec6f24a25e06/218_HARTWICK_FINESILK_LARGESQUARE_SCARF_NATURALDYE_BLOCKPRINT.jpg",
+      copy: "Unbleached cloth is first bathed in Myrobalan fruit and mineral alum before entering living vats of wild indigo, madder root, marigold, pomegranate rind, and black walnut—yielding colours that deepen with age.",
+      glossaryId: "06",
+      productHandle: "palma-fresh-pink-cotton"
+    }
+  ];
+  const activeStage = atelierStages[STATE.activeAtelierStageIndex] || atelierStages[0];
+
+  // Category filter for Direction 1's Swiss Index Table
+  const categoryMap = {
+    "ALL": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12"],
+    "LOOM": ["01", "02", "03", "05", "07", "08"],
+    "DYE": ["04", "06", "11"],
+    "SURFACE": ["09", "10", "12"]
+  };
+  const visibleIds = categoryMap[STATE.glossaryCategoryFilter] || categoryMap["ALL"];
+  const filteredGlossaryList = HERITAGE_GLOSSARY_LIST.filter(item => visibleIds.includes(item.id));
+
+  if (isBotanicalAtelier) {
+    // =========================================================================
+    // DIRECTION 2 MASTERCLASS UX: THE BOTANICAL ARCHIVE & ATELIER WORKBENCH
+    // (Completely distinct UX architecture from Direction 1!)
+    // 1. Interactive 6-Circle Botanical Dye Vat Laboratory
+    // 2. Interactive Split-Screen Master Dossier Workbench (01–12 Specimen Deck + Live Open Folio)
+    // 3. 3 Horizontal Layered Herbarium Specimen Folios (The Cloth / Knowledge / Handwork)
+    // 4. Interactive 4-Stage "In the Hands of the Maker" Atelier Process Switcher
+    // =========================================================================
+    return `
+      <div class="masters-aloha-view view-enter">
+        <!-- WORKBENCH I: INTERACTIVE BOTANICAL DYE VAT LABORATORY -->
+        <section class="masters-botanical-hero-b">
+          <div class="masters-botanical-hero-b__grid">
+            <div>
+              <span style="display:inline-block;font-size:10px;letter-spacing:0.24em;text-transform:uppercase;color:#6E5A49;margin-bottom:16px">
+                ✦ Direction 2 UX · Interactive Atelier Workbench &amp; Master Dossiers
+              </span>
+              <blockquote style="font-family:var(--font-serif);font-size:clamp(1.85rem,3vw,2.7rem);font-weight:300;line-height:1.34;color:#1E1B18;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:20px">
+                “If we have the khadi spirit in us, we would surround ourselves with simplicity in every walk of life.”
+              </blockquote>
+              <p style="font-size:10.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--text-secondary);margin-bottom:22px">
+                — Mahatma Gandhi
+              </p>
+              <p style="font-family:var(--font-serif);font-size:15.5px;line-height:1.78;color:var(--text-secondary);margin-bottom:26px;max-width:520px">
+                Unlike a standard reading page, this Atelier Workbench lets you actively test Shannon’s 6 botanical dye vats on the right, open any of the 12 Master Dossier Folios below in split-screen view, and trace every technique back to its garment.
+              </p>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button
+                  type="button"
+                  class="btn-primary"
+                  onclick="scrollToElementById('masters-glossary-index')"
+                >
+                  Open Split-Screen Master Dossiers ↓
+                </button>
+                <button
+                  type="button"
+                  class="btn-outline"
+                  onclick="returnToProductFromMasters()"
+                >
+                  ← Return to Garment Page
+                </button>
+              </div>
+            </div>
+
+            <!-- Interactive 6-Circle Botanical Dye Vat Laboratory -->
+            <div class="dye-lab-interactive">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:8px">
+                <span style="font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:#1E1B18;font-weight:600">
+                  ✦ Interactive Botanical Dye Vat Laboratory (01–06)
+                </span>
+                <span style="font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted)">
+                  Click Any Botanical Circle Below
+                </span>
+              </div>
+
+              <div class="dye-lab-interactive__circles">
+                ${botanicalSpecimens.map((spec, idx) => `
+                  <div
+                    class="dye-lab-organic-specimen ${STATE.activeDyeLabIndex === idx ? "active" : ""}"
+                    onclick="selectDyeLabSpecimen(${idx})"
+                  >
+                    <img src="${spec.img}" alt="${spec.title}" />
+                    <span>${spec.shortLabel}</span>
+                  </div>
+                `).join("")}
+              </div>
+
+              <div style="background:#F3EFE8;padding:18px 20px;display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;margin-bottom:14px">
+                <div>
+                  <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#6E5A49;font-weight:600;margin-bottom:4px">
+                    ${activeSpec.code} &nbsp;·&nbsp; Origin: ${activeSpec.origin}
+                  </div>
+                  <h3 style="font-family:var(--font-serif);font-size:21px;font-weight:400;color:#1E1B18;margin-bottom:6px">
+                    ${activeSpec.title}
+                  </h3>
+                  <p style="font-family:var(--font-serif);font-style:italic;font-size:14px;color:var(--text-secondary);line-height:1.6;margin-bottom:10px">
+                    ${activeSpec.note}
+                  </p>
+                  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:9.5px;letter-spacing:0.15em;text-transform:uppercase;color:#1E1B18">
+                    <span><strong>Mordant / Fixative:</strong> ${activeSpec.mordant}</span>
+                    <button
+                      type="button"
+                      onclick="selectMasterDossierTechnique('${activeSpec.glossaryId}');scrollToElementById('masters-glossary-index')"
+                      style="background:none;border:none;color:#1E1B18;font-weight:600;text-decoration:underline;cursor:pointer;font-size:9.5px;letter-spacing:0.15em;text-transform:uppercase;padding:0"
+                    >
+                      Open Dossier #${activeSpec.glossaryId} ↓
+                    </button>
+                  </div>
+                </div>
+                <div style="text-align:center">
+                  <img src="${activeSpec.swatch}" alt="${activeSpec.title} Swatch" style="width:88px;height:88px;object-fit:contain;mix-blend-mode:multiply;display:block;margin:0 auto" />
+                  <span style="display:block;font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-muted);margin-top:6px;font-weight:600">
+                    Watercolor Swatch
+                  </span>
+                </div>
+              </div>
+
+              <div
+                onclick="navigateTo('pdp', '${linkedProduct.handle}')"
+                style="background:#F3EFE8;color:#1E1B18;padding:12px 16px;border:1px solid var(--border-strong);display:flex;justify-content:space-between;align-items:center;gap:14px;cursor:pointer"
+              >
+                <div style="display:flex;align-items:center;gap:14px">
+                  <img src="${linkedProduct.images[0]}" alt="${linkedProduct.title}" style="width:46px;height:58px;object-fit:cover;border:1px solid var(--border-subtle)" />
+                  <div>
+                    <span style="display:block;font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:#6E5A49">
+                      Garment Dyed in ${activeSpec.code} · ${linkedProduct.lot}
+                    </span>
+                    <strong style="font-size:11.5px;letter-spacing:0.14em;text-transform:uppercase;color:#1E1B18;display:block;margin-top:2px">
+                      ${linkedProduct.title}
+                    </strong>
+                    <span style="font-family:var(--font-serif);font-style:italic;font-size:13px;color:var(--text-secondary)">
+                      ${linkedProduct.commercial_expression} — ${formatPrice(linkedProduct)}
+                    </span>
+                  </div>
+                </div>
+                <span style="font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#1E1B18;font-weight:600;white-space:nowrap">
+                  Open Garment ⟶
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- WORKBENCH II: INTERACTIVE SPLIT-SCREEN MASTER DOSSIER WORKBENCH (01–12)
+             (Replaces the vertical 12-row accordion of Direction 1 with a 2-Pane Specimen Deck + Live Master Folio!) -->
+        <section class="masters-dossier-workbench" id="masters-glossary-index">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px">
+            <div>
+              <span class="fibre-to-garment__eyebrow" style="color:#6E5A49">✦ Interactive Split-Screen Archive · 01 — 12</span>
+              <h2 class="fibre-to-garment__title">THE MASTER DOSSIER &amp; SPECIMEN WORKBENCH</h2>
+              <p style="font-family:var(--font-serif);font-size:16px;color:var(--text-secondary);margin-top:6px;max-width:680px">
+                Select any of the 12 botanical specimen cards on the left to open its complete Master Dossier Folio on the right—complete with dual hand-painted dye seals, atelier provenance, and the garment crafted with that technique.
+              </p>
+            </div>
+            <button
+              type="button"
+              class="btn-outline"
+              style="padding:10px 18px;font-size:9.5px"
+              onclick="returnToProductFromMasters()"
+            >
+              ← Return to Product Page
+            </button>
+          </div>
+
+          <div class="masters-dossier-workbench__grid">
+            <!-- LEFT PANE: 2-Column Tactile Specimen Deck (01–12) -->
+            <div class="dossier-deck-panel">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border-strong)">
+                <span style="font-size:9.5px;letter-spacing:0.2em;text-transform:uppercase;color:#1E1B18;font-weight:600">
+                  12 Heritage Specimens
+                </span>
+                <span style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:#6E5A49">
+                  Active: #${activeDossierItem.id} ${activeDossierItem.name}
+                </span>
+              </div>
+              <div class="dossier-deck-grid">
+                ${HERITAGE_GLOSSARY_LIST.map(item => {
+                  const isSelected = item.id === activeDossierItem.id;
+                  return `
+                    <button
+                      type="button"
+                      class="dossier-deck-btn ${isSelected ? "active" : ""}"
+                      onclick="selectMasterDossierTechnique('${item.id}')"
+                    >
+                      <div>
+                        <span class="dossier-deck-btn__num">Specimen ${item.id}</span>
+                        <span class="dossier-deck-btn__name">${item.name}</span>
+                      </div>
+                    </button>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+
+            <!-- RIGHT PANE: Open Master Dossier Folio -->
+            <div class="dossier-folio-panel" id="glossary-row-${activeDossierItem.id}">
+              <div class="dossier-folio-panel__top-bar">
+                <span style="font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:#6E5A49;font-weight:600">
+                  Atelier Master Dossier · Specimen #${activeDossierItem.id} of 12
+                </span>
+                <div style="display:flex;gap:8px">
+                  <button
+                    type="button"
+                    class="btn-outline"
+                    style="padding:6px 12px;font-size:9px"
+                    onclick="stepMasterDossierTechnique(-1)"
+                  >
+                    ← Prev Dossier
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-outline"
+                    style="padding:6px 12px;font-size:9px"
+                    onclick="stepMasterDossierTechnique(1)"
+                  >
+                    Next Dossier →
+                  </button>
+                </div>
+              </div>
+
+              <div class="dossier-folio-panel__header">
+                <div style="max-width:440px">
+                  <span style="display:block;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:#6E5A49;margin-bottom:6px">
+                    Heritage Technique #${activeDossierItem.id}
+                  </span>
+                  <h3 style="font-family:var(--font-serif);font-size:clamp(1.9rem,3vw,2.6rem);font-weight:300;text-transform:uppercase;letter-spacing:0.06em;color:#1E1B18;margin-bottom:8px">
+                    ${activeDossierItem.name}
+                  </h3>
+                  <p style="font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-secondary)">
+                    ${activeDossierItem.summary}
+                  </p>
+                </div>
+
+                <!-- Dual Botanical Seal (Organic Unframed Watercolor Dot + Swatch) -->
+                <div style="display:flex;align-items:center;gap:16px">
+                  <img src="${activeDossierBlot.img}" alt="${activeDossierItem.botanicalLabel}" style="width:86px;height:86px;object-fit:contain;mix-blend-mode:multiply" />
+                  <img src="${activeDossierBlot.swatch}" alt="${activeDossierItem.botanicalLabel} Swatch" style="width:82px;height:82px;object-fit:contain;mix-blend-mode:multiply" />
+                  <div style="font-size:9px;letter-spacing:0.15em;text-transform:uppercase">
+                    <span style="display:block;color:#6E5A49">${activeDossierBlot.lotCode}</span>
+                    <strong style="display:block;color:#1E1B18;margin-top:2px;max-width:140px;line-height:1.3">${activeDossierItem.botanicalLabel}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4-Cell Atelier Provenance Strip -->
+              <div class="dossier-folio-panel__meta-strip">
+                <div class="dossier-meta-cell">
+                  <span>Craft Discipline</span>
+                  <strong>${activeDossierItem.name}</strong>
+                </div>
+                <div class="dossier-meta-cell">
+                  <span>Botanical Seal</span>
+                  <strong>${activeDossierBlot.lotCode}</strong>
+                </div>
+                <div class="dossier-meta-cell">
+                  <span>Energy Input</span>
+                  <strong>100% Hand / 0 kWh</strong>
+                </div>
+                <div class="dossier-meta-cell">
+                  <span>Atelier Status</span>
+                  <strong>Living Heritage</strong>
+                </div>
+              </div>
+
+              <!-- Two-Column Dossier Body: Story + Archival Master Image -->
+              <div style="display:grid;grid-template-columns:1.15fr 1fr;gap:28px;align-items:start;margin-bottom:28px">
+                <div style="font-family:var(--font-serif);font-size:16px;line-height:1.82;color:var(--text-secondary)">
+                  ${activeDossierItem.paragraphs.map(p => `<p style="margin-bottom:14px">${p}</p>`).join("")}
+                </div>
+                <div>
+                  <div style="aspect-ratio:4/3;overflow:hidden;border:1px solid var(--border-strong);background:#EAE4DA">
+                    <img src="${activeDossierItem.image}" alt="${activeDossierItem.name}" style="width:100%;height:100%;object-fit:cover" />
+                  </div>
+                  <div style="display:flex;justify-content:space-between;font-size:8.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted);margin-top:8px">
+                    <span>Hartwick Atelier Archival Plate #${activeDossierItem.id}</span>
+                    <span>Authentic Master Record</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Connected Garment + Fibre-to-Garment Glossary Loop inside the Open Dossier -->
+              <div style="background:#F3EFE8;border:1px solid var(--border-subtle);padding:20px 22px">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--border-subtle)">
+                  <div style="display:flex;align-items:center;gap:16px">
+                    <img src="${dossierGarment.images[0]}" alt="${dossierGarment.title}" style="width:56px;height:72px;object-fit:cover;border:1px solid var(--border-subtle)" />
+                    <div>
+                      <span style="display:block;font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:#6E5A49">
+                        Fibre-to-Garment Glossary Loop · Technique #${activeDossierItem.id} (${activeDossierItem.name}) · ${dossierGarment.lot}
+                      </span>
+                      <strong style="display:block;font-size:13.5px;letter-spacing:0.14em;text-transform:uppercase;color:#1E1B18;margin-top:3px">
+                        ${dossierGarment.title}
+                      </strong>
+                      <span style="font-family:var(--font-serif);font-style:italic;font-size:14px;color:var(--text-secondary)">
+                        ${dossierGarment.commercial_expression} — ${formatPrice(dossierGarment)}
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn-primary"
+                    style="padding:12px 22px;font-size:10px"
+                    onclick="navigateTo('pdp', '${dossierGarment.handle}')"
+                  >
+                    Inspect Garment &amp; Fibre Record ⟶
+                  </button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;padding-top:14px;font-size:10px">
+                  <div>
+                    <span style="display:block;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#6E5A49;margin-bottom:3px">Product Name</span>
+                    <strong style="color:#1E1B18;font-family:var(--font-serif);font-size:13px">${dossierGarment.title}</strong>
+                  </div>
+                  <div>
+                    <span style="display:block;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#6E5A49;margin-bottom:3px">Sizing</span>
+                    <strong style="color:#1E1B18;font-family:var(--font-serif);font-size:13px">${(dossierGarment.fibre_to_garment && dossierGarment.fibre_to_garment.sizing) || (dossierGarment.sizes || ["XS","S","M","L","XL"]).join(" · ")}</strong>
+                  </div>
+                  <div>
+                    <span style="display:block;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#6E5A49;margin-bottom:3px">Fiber</span>
+                    <strong style="color:#1E1B18;font-family:var(--font-serif);font-size:13px">${(dossierGarment.fibre_to_garment && dossierGarment.fibre_to_garment.fiber) || dossierGarment.fibre}</strong>
+                  </div>
+                  <div>
+                    <span style="display:block;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#6E5A49;margin-bottom:3px">Spinning Details</span>
+                    <strong style="color:#1E1B18;font-family:var(--font-serif);font-size:13px">${(dossierGarment.fibre_to_garment && dossierGarment.fibre_to_garment.spinning) || "Hand-spun on wooden Charkha"}</strong>
+                  </div>
+                  <div>
+                    <span style="display:block;font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#6E5A49;margin-bottom:3px">Construction</span>
+                    <strong style="color:#1E1B18;font-family:var(--font-serif);font-size:13px">${(dossierGarment.fibre_to_garment && dossierGarment.fibre_to_garment.construction) || "Single-tailor French-seam assembly"}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- WORKBENCH III: HORIZONTAL LAYERED HERBARIUM SPECIMEN FOLIOS (THE 3 FOUNDATIONS)
+             (Replaces the 3 vertical cards of Direction 1 with wide horizontal Herbarium Sheets!) -->
+        <section class="masters-knowledge-triad">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px">
+            <div>
+              <span class="fibre-to-garment__eyebrow" style="color:#6E5A49">✦ Three Herbarium Specimen Folios</span>
+              <h2 class="fibre-to-garment__title">THE KNOWLEDGE BEHIND THE WORK</h2>
+            </div>
+            <span style="font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#6E5A49">
+              Direction 2 UX: Horizontal Layered Herbarium Sheets + Atelier Ledgers
+            </span>
+          </div>
+
+          <div class="herbarium-folio-stack">
+            <!-- HERBARIUM FOLIO I: THE CLOTH -->
+            <article class="herbarium-folio-row">
+              <div class="herbarium-folio-row__specimen">
+                <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:10px">
+                  <img src="assets/blots/swatch_marigold.png" alt="Marigold Swatch Plate" style="width:104px;height:104px;object-fit:contain;mix-blend-mode:multiply" />
+                  <img src="assets/blots/dot_iron_rust.png" alt="Iron Marigold Blot" style="width:74px;height:74px;object-fit:contain;mix-blend-mode:multiply" />
+                </div>
+                <span style="display:block;font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:#6E5A49;font-weight:600">
+                  Herbarium Plate I · VAT-MRG-01
+                </span>
+              </div>
+              <div>
+                <span class="fibre-to-garment__eyebrow" style="color:#6E5A49">Foundation 01 · Materiality</span>
+                <h3 style="font-family:var(--font-serif);font-size:26px;font-weight:400;color:#1E1B18;margin-bottom:10px">The Cloth</h3>
+                <p style="font-family:var(--font-serif);font-size:16.5px;line-height:1.82;color:var(--text-secondary)">
+                  From hand-harvested organic cotton and wild Matka silk to handspun yarn on the charkha, our textiles are woven without electricity. They breathe and drape with a supple rhythm that only human hands can create.
+                </p>
+              </div>
+              <div class="herbarium-folio-row__ledger">
+                <div class="herbarium-ledger-line"><span>Fibre</span><strong>Khadi &amp; Wild Matka Silk</strong></div>
+                <div class="herbarium-ledger-line"><span>Spun On</span><strong>Hand-Turned Charkha</strong></div>
+                <div class="herbarium-ledger-line"><span>Loom</span><strong>Wooden Pit Loom</strong></div>
+                <button
+                  type="button"
+                  onclick="selectMasterDossierTechnique('01');scrollToElementById('masters-glossary-index')"
+                  style="margin-top:12px;width:100%;background:#1E1B18;color:#FAF8F4;border:none;padding:10px;font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer"
+                >
+                  Open Dossier #01 Khadi ↑
+                </button>
+              </div>
+            </article>
+
+            <!-- HERBARIUM FOLIO II: THE KNOWLEDGE -->
+            <article class="herbarium-folio-row">
+              <div class="herbarium-folio-row__specimen">
+                <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:10px">
+                  <img src="assets/blots/swatch_pokeberry.png" alt="Pokeberry Swatch Plate" style="width:104px;height:104px;object-fit:contain;mix-blend-mode:multiply" />
+                  <img src="assets/blots/dot_goldenrod.png" alt="Goldenrod Blot" style="width:74px;height:74px;object-fit:contain;mix-blend-mode:multiply" />
+                </div>
+                <span style="display:block;font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:#6E5A49;font-weight:600">
+                  Herbarium Plate II · VAT-PKB-05
+                </span>
+              </div>
+              <div>
+                <span class="fibre-to-garment__eyebrow" style="color:#6E5A49">Foundation 02 · Botanical Alchemy</span>
+                <h3 style="font-family:var(--font-serif);font-size:26px;font-weight:400;color:#1E1B18;margin-bottom:10px">The Knowledge</h3>
+                <p style="font-family:var(--font-serif);font-size:16.5px;line-height:1.82;color:var(--text-secondary)">
+                  Master Colorists work with living vats of wild indigo, pomegranate rind, madder root, turmeric, myrobalan, and fermented iron—waiting on the warmth of the sun and the mineral balance of water.
+                </p>
+              </div>
+              <div class="herbarium-folio-row__ledger">
+                <div class="herbarium-ledger-line"><span>Pre-Mordant</span><strong>Myrobalan &amp; Alum</strong></div>
+                <div class="herbarium-ledger-line"><span>Dye Bath</span><strong>Indigo, Madder &amp; Iron</strong></div>
+                <div class="herbarium-ledger-line"><span>Fixation</span><strong>Open Sun &amp; River Air</strong></div>
+                <button
+                  type="button"
+                  onclick="selectMasterDossierTechnique('06');scrollToElementById('masters-glossary-index')"
+                  style="margin-top:12px;width:100%;background:#1E1B18;color:#FAF8F4;border:none;padding:10px;font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer"
+                >
+                  Open Dossier #06 Natural Dye ↑
+                </button>
+              </div>
+            </article>
+
+            <!-- HERBARIUM FOLIO III: THE HANDWORK -->
+            <article class="herbarium-folio-row">
+              <div class="herbarium-folio-row__specimen">
+                <div style="display:flex;justify-content:center;align-items:center;gap:12px;margin-bottom:10px">
+                  <img src="assets/blots/swatch_walnut.png" alt="Walnut Swatch Plate" style="width:104px;height:104px;object-fit:contain;mix-blend-mode:multiply" />
+                  <img src="assets/blots/dot_walnut.png" alt="Walnut Blot" style="width:74px;height:74px;object-fit:contain;mix-blend-mode:multiply" />
+                </div>
+                <span style="display:block;font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:#6E5A49;font-weight:600">
+                  Herbarium Plate III · VAT-WLN-03
+                </span>
+              </div>
+              <div>
+                <span class="fibre-to-garment__eyebrow" style="color:#6E5A49">Foundation 03 · Patience</span>
+                <h3 style="font-family:var(--font-serif);font-size:26px;font-weight:400;color:#1E1B18;margin-bottom:10px">The Handwork</h3>
+                <p style="font-family:var(--font-serif);font-size:16.5px;line-height:1.82;color:var(--text-secondary)">
+                  Whether carving teakwood blocks by hand, stamping 16 sequential resist layers, or couching metallic Gota Patti ribbon in Jaipur, time is measured by completion rather than the clock.
+                </p>
+              </div>
+              <div class="herbarium-folio-row__ledger">
+                <div class="herbarium-ledger-line"><span>Blocks</span><strong>Seasoned Hand-Carved Teak</strong></div>
+                <div class="herbarium-ledger-line"><span>Impressions</span><strong>Up to 16 Layered Stamps</strong></div>
+                <div class="herbarium-ledger-line"><span>Goldwork</span><strong>Jaipur Zari &amp; Gota Patti</strong></div>
+                <button
+                  type="button"
+                  onclick="selectMasterDossierTechnique('04');scrollToElementById('masters-glossary-index')"
+                  style="margin-top:12px;width:100%;background:#1E1B18;color:#FAF8F4;border:none;padding:10px;font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer"
+                >
+                  Open Dossier #04 Block Print ↑
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- WORKBENCH IV: INTERACTIVE 4-STAGE ATELIER PROCESS STORYBOARD
+             (Replaces the static 2-card diptych of Direction 1 with an interactive 4-Stage Maker Switcher!) -->
+        <section class="atelier-process-workbench">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px">
+            <div>
+              <span class="fibre-to-garment__eyebrow" style="color:#6E5A49">✦ Interactive 4-Stage Maker Storyboard</span>
+              <h2 class="fibre-to-garment__title">WE CHERISH THESE NUANCES FOR THEIR HUMAN TOUCH</h2>
+            </div>
+            <span style="font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-muted)">
+              Click Any Stage (I–IV) to Inspect the Maker’s Process
+            </span>
+          </div>
+
+          <div class="atelier-stage-tabs">
+            ${atelierStages.map((stg, idx) => `
+              <button
+                type="button"
+                class="atelier-stage-tab ${STATE.activeAtelierStageIndex === idx ? "active" : ""}"
+                onclick="selectAtelierStage(${idx})"
+              >
+                <div>
+                  <span style="display:block;font-size:8.5px;letter-spacing:0.2em;text-transform:uppercase;color:#6E5A49">Stage 0${idx + 1}</span>
+                  <strong style="display:block;font-family:var(--font-serif);font-size:16px;font-weight:400;color:#1E1B18;margin-top:2px">${stg.shortTitle}</strong>
+                </div>
+              </button>
+            `).join("")}
+          </div>
+
+          <div class="atelier-stage-showcase">
+            <div style="aspect-ratio:16/10;overflow:hidden;border:1px solid var(--border-strong);background:#EAE4DA">
+              <img src="${activeStage.photo}" alt="${activeStage.headline}" style="width:100%;height:100%;object-fit:cover" />
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border-subtle)">
+                <span style="font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:#6E5A49;font-weight:600">
+                  ${activeStage.stageNum}
+                </span>
+                <div style="display:flex;align-items:center;gap:10px">
+                  <img src="${activeStage.blotImg}" alt="" style="width:62px;height:62px;object-fit:contain;mix-blend-mode:multiply" />
+                  <img src="${activeStage.swatchImg}" alt="" style="width:58px;height:58px;object-fit:contain;mix-blend-mode:multiply" />
+                </div>
+              </div>
+              <h3 style="font-family:var(--font-serif);font-size:clamp(1.6rem,2.4vw,2.15rem);font-weight:300;text-transform:uppercase;letter-spacing:0.05em;color:#1E1B18;margin-bottom:14px">
+                ${activeStage.headline}
+              </h3>
+              <p style="font-family:var(--font-serif);font-size:16px;line-height:1.82;color:var(--text-secondary);margin-bottom:20px">
+                ${activeStage.copy}
+              </p>
+              <div style="background:#F3EFE8;border:1px solid var(--border-subtle);padding:14px 18px;margin-bottom:22px;display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:10px;letter-spacing:0.14em;text-transform:uppercase">
+                <div><span style="color:#6E5A49;display:block;font-size:8.5px">Master Tool</span><strong>${activeStage.tool}</strong></div>
+                <div><span style="color:#6E5A49;display:block;font-size:8.5px">Guild &amp; Cadence</span><strong>${activeStage.cadence}</strong></div>
+              </div>
+              <div style="display:flex;gap:12px;flex-wrap:wrap">
+                <button class="btn-primary" onclick="navigateTo('pdp', '${activeStage.productHandle}')">
+                  Inspect Garment From This Stage ⟶
+                </button>
+                <button class="btn-outline" onclick="selectMasterDossierTechnique('${activeStage.glossaryId}');scrollToElementById('masters-glossary-index')">
+                  Open Master Dossier ↑
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
+  // ===========================================================================
+  // DIRECTION 1 MASTERCLASS UX: THE ARCHITECTURAL GALLERY (The Row / Jil Sander)
+  // Linear Museum Exhibition Monograph + 4-Chapter Jump Bar + 3-Col Swiss Grid
+  // + Filterable 12-Row Horizontal Accordion Table + Gallery Diptych
+  // ===========================================================================
+  return `
+    <div class="masters-aloha-view view-enter">
+      <!-- 1. ARCHITECTURAL EXHIBITION PLINTH HERO -->
+      <section class="masters-khadi-hero">
+        <div class="masters-khadi-hero__inner">
+          <span class="masters-khadi-hero__eyebrow" style="color:#121212;letter-spacing:0.26em">Direction 1 UX · Architectural Gallery Monograph · 01 — 12</span>
+          <blockquote class="masters-khadi-hero__quote" style="color:#121212">
+            “If we have the khadi spirit in us, we would surround ourselves with simplicity in every walk of life.”
+          </blockquote>
+          <p class="masters-khadi-hero__author" style="color:#3A3A38">— Mahatma Gandhi</p>
+        </div>
+      </section>
+
+      <!-- 4-CHAPTER ARCHITECTURAL EXHIBITION BAR (Unique to Direction 1 UX) -->
+      <nav class="arch-chapter-bar" aria-label="Exhibition Chapters">
+        <button type="button" class="arch-chapter-bar__btn" onclick="scrollToElementById('arch-chap-1')">
+          <span class="arch-chapter-bar__num">Chapter I · Plate 01</span>
+          <span class="arch-chapter-bar__label">Lineage &amp; Handwork ↓</span>
+        </button>
+        <button type="button" class="arch-chapter-bar__btn" onclick="scrollToElementById('arch-chap-2')">
+          <span class="arch-chapter-bar__num">Chapter II · Triad</span>
+          <span class="arch-chapter-bar__label">Three Foundations ↓</span>
+        </button>
+        <button type="button" class="arch-chapter-bar__btn" onclick="scrollToElementById('masters-glossary-index')">
+          <span class="arch-chapter-bar__num">Chapter III · Index 01–12</span>
+          <span class="arch-chapter-bar__label">Swiss Technique Table ↓</span>
+        </button>
+        <button type="button" class="arch-chapter-bar__btn" onclick="scrollToElementById('arch-chap-4')">
+          <span class="arch-chapter-bar__num">Chapter IV · Diptych</span>
+          <span class="arch-chapter-bar__label">Human Nuances ↓</span>
+        </button>
+      </nav>
+
+      <!-- 2. CHAPTER I: EDITORIAL SPLIT MONOGRAPH -->
+      <section class="masters-intro-split" id="arch-chap-1">
+        <div class="masters-intro-split__img" style="position:relative">
+          <span class="arch-crosshair arch-crosshair--tl">+</span>
+          <span class="arch-crosshair arch-crosshair--tr">+</span>
+          <span class="arch-crosshair arch-crosshair--bl">+</span>
+          <span class="arch-crosshair arch-crosshair--br">+</span>
+          <img
+            src="${SQS_CDN}643566b4-c934-4030-922c-ec6f24a25e06/218_HARTWICK_FINESILK_LARGESQUARE_SCARF_NATURALDYE_BLOCKPRINT.jpg"
+            alt="Master Artisan at the Printing Table"
+          />
+        </div>
+        <div class="masters-intro-split__text">
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+            <img src="assets/blots/dot_walnut.png" alt="Walnut Dye Dot" style="width:42px;height:42px;mix-blend-mode:multiply" />
+            <div>
+              <span class="fibre-to-garment__eyebrow" style="margin-bottom:2px">Chapter I · Lineage &amp; Handwork</span>
+              <span style="font-family:var(--font-serif);font-style:italic;font-size:15px;color:var(--text-secondary)">Centuries of Rare Artisanal Knowledge</span>
+            </div>
+          </div>
+          <p>
+            Textile history dates back to the beginning of human civilization. Masters hold knowledge developed over centuries—passed down from hand to hand, loom to loom, and dye vat to dye vat.
+          </p>
+          <p>
+            Hartwick Atelier specializes in hand spun and handwoven fabrics, natural and ayurvedic dyes, and exquisite heritage handwork. These artisanal techniques rely on rare knowledge and the natural cycles of the sun, wind, and rain.
+          </p>
+          <p style="margin-bottom:24px">
+            Each handcrafted piece in the collection is a living record of the master weavers, spinners, woodblock carvers, natural colorists, and goldsmiths who brought it into being.
+          </p>
+
+          <!-- Architectural Metric Ledger Strip -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #121212;border-bottom:1px solid #121212;padding:14px 0;margin-bottom:24px;gap:12px">
+            <div>
+              <span style="display:block;font-family:var(--font-serif);font-size:22px;color:#121212">12</span>
+              <span style="font-size:8.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted)">Indexed Crafts</span>
+            </div>
+            <div>
+              <span style="display:block;font-family:var(--font-serif);font-size:22px;color:#121212">16</span>
+              <span style="font-size:8.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted)">Block Impressions</span>
+            </div>
+            <div>
+              <span style="display:block;font-family:var(--font-serif);font-size:22px;color:#121212">0 kWh</span>
+              <span style="font-size:8.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-muted)">Handloom Energy</span>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button type="button" class="btn-primary" onclick="scrollToElementById('masters-glossary-index')">
+              Explore Glossary Table ↓
+            </button>
+            <button type="button" class="btn-outline" onclick="navigateTo('pdp', '${STATE.lastPdpHandle || "tribeca-matka-silk-emerald"}')">
+              Inspect Garment Record ⟶
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. CHAPTER II: THE KNOWLEDGE BEHIND THE WORK — 3-COLUMN SWISS ARCHITECTURAL GRID -->
+      <section class="masters-knowledge-triad" id="arch-chap-2">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px">
+          <div>
+            <span class="fibre-to-garment__eyebrow">Chapter II · Three Foundations</span>
+            <h2 class="fibre-to-garment__title">THE KNOWLEDGE BEHIND THE WORK</h2>
+          </div>
+          <span style="font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:var(--text-muted)">
+            Direction 1 UX: 3-Column Swiss Gallery Grid with Prominent Botanical Dots (76px)
+          </span>
+        </div>
+
+        <div class="masters-knowledge-triad__grid">
+          <article class="knowledge-card" style="background:var(--bg-primary);padding:40px 34px">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px">
+                <div>
+                  <span class="fibre-to-garment__eyebrow">01 · Materiality</span>
+                  <h3 class="knowledge-card__title" style="font-size:24px;margin-bottom:0">The Cloth</h3>
+                </div>
+                <img
+                  src="assets/blots/dot_iron_rust.png"
+                  alt="Marigold Dot"
+                  style="width:76px;height:76px;object-fit:contain;mix-blend-mode:multiply"
+                />
+              </div>
+              <p class="knowledge-card__copy" style="font-size:16px;line-height:1.82">
+                From hand-harvested organic cotton and wild Matka silk to handspun yarn on the charkha, our textiles are woven without electricity. They breathe and drape with a supple rhythm that only human hands can create.
+              </p>
+            </div>
+            <div class="knowledge-card__blot-footer">
+              <span>Index 01 · Marigold &amp; Iron</span>
+              <button type="button" onclick="navigateToMastersTechnique('01')" style="background:none;border:none;font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;text-decoration:underline">
+                01 Khadi ↓
+              </button>
+            </div>
+          </article>
+
+          <article class="knowledge-card" style="background:var(--bg-primary);padding:40px 34px">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px">
+                <div>
+                  <span class="fibre-to-garment__eyebrow">02 · Alchemy</span>
+                  <h3 class="knowledge-card__title" style="font-size:24px;margin-bottom:0">The Knowledge</h3>
+                </div>
+                <img
+                  src="assets/blots/dot_goldenrod.png"
+                  alt="Goldenrod Dot"
+                  style="width:76px;height:76px;object-fit:contain;mix-blend-mode:multiply"
+                />
+              </div>
+              <p class="knowledge-card__copy" style="font-size:16px;line-height:1.82">
+                Master Colorists work with living vats of wild indigo, pomegranate rind, madder root, turmeric, myrobalan, and fermented iron—waiting on the warmth of the sun and the mineral balance of water.
+              </p>
+            </div>
+            <div class="knowledge-card__blot-footer">
+              <span>Index 06 · Goldenrod &amp; Alum</span>
+              <button type="button" onclick="navigateToMastersTechnique('06')" style="background:none;border:none;font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;text-decoration:underline">
+                06 Natural Dye ↓
+              </button>
+            </div>
+          </article>
+
+          <article class="knowledge-card" style="background:var(--bg-primary);padding:40px 34px">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:22px">
+                <div>
+                  <span class="fibre-to-garment__eyebrow">03 · Patience</span>
+                  <h3 class="knowledge-card__title" style="font-size:24px;margin-bottom:0">The Handwork</h3>
+                </div>
+                <img
+                  src="assets/blots/dot_walnut.png"
+                  alt="Walnut Dot"
+                  style="width:76px;height:76px;object-fit:contain;mix-blend-mode:multiply"
+                />
+              </div>
+              <p class="knowledge-card__copy" style="font-size:16px;line-height:1.82">
+                Whether carving teakwood blocks by hand, stamping 16 sequential resist layers, or couching metallic Gota Patti ribbon in Jaipur, time is measured by completion rather than the clock.
+              </p>
+            </div>
+            <div class="knowledge-card__blot-footer">
+              <span>Index 04 · Black Walnut &amp; Ash</span>
+              <button type="button" onclick="navigateToMastersTechnique('04')" style="background:none;border:none;font-size:9.5px;letter-spacing:0.18em;text-transform:uppercase;cursor:pointer;text-decoration:underline">
+                04 Block Print ↓
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- 4. CHAPTER III: FILTERABLE 12-ROW SWISS ARCHITECTURAL ACCORDION TABLE -->
+      <section class="masters-glossary-section" id="masters-glossary-index">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px;margin-bottom:20px">
+          <div>
+            <span class="fibre-to-garment__eyebrow">Chapter III · The Archive Index · 01 — 12</span>
+            <h2 class="fibre-to-garment__title">A GLOSSARY OF HERITAGE TECHNIQUES</h2>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <div class="arch-filter-pills">
+              <button type="button" class="arch-filter-pill ${STATE.glossaryCategoryFilter === "ALL" ? "active" : ""}" onclick="setGlossaryCategoryFilter('ALL')">All 12</button>
+              <button type="button" class="arch-filter-pill ${STATE.glossaryCategoryFilter === "LOOM" ? "active" : ""}" onclick="setGlossaryCategoryFilter('LOOM')">Fibre &amp; Loom</button>
+              <button type="button" class="arch-filter-pill ${STATE.glossaryCategoryFilter === "DYE" ? "active" : ""}" onclick="setGlossaryCategoryFilter('DYE')">Botanical Dye &amp; Print</button>
+              <button type="button" class="arch-filter-pill ${STATE.glossaryCategoryFilter === "SURFACE" ? "active" : ""}" onclick="setGlossaryCategoryFilter('SURFACE')">Surface &amp; Goldwork</button>
+            </div>
+            <button
+              type="button"
+              class="btn-outline"
+              style="padding:9px 18px;font-size:9.5px"
+              onclick="returnToProductFromMasters()"
+            >
+              ← Return to Product Page
+            </button>
+          </div>
+        </div>
+
+        <div class="glossary-list">
+          ${filteredGlossaryList.map(item => {
+            const isOpen = item.id === STATE.activeGlossaryId;
+            return `
+              <div class="glossary-row ${isOpen ? "open active-highlight" : ""}" id="glossary-row-${item.id}">
+                <button type="button" class="glossary-row__trigger" onclick="toggleGlossaryRow('${item.id}')">
+                  <span class="glossary-row__num" style="color:#121212;font-family:var(--font-sans);font-size:12px;letter-spacing:0.2em">${item.id}</span>
+                  <span class="glossary-row__name">
+                    <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#121212;margin-right:4px"></span>
+                    <span>${item.name}</span>
+                  </span>
+                  <span class="glossary-row__summary">${item.summary}</span>
+                  <span class="glossary-row__icon">+</span>
+                </button>
+                <div class="glossary-row__body">
+                  <div class="glossary-row__story">
+                    <div style="display:inline-flex;align-items:center;gap:12px;margin-bottom:18px;padding:8px 14px;background:#EFECE6;border:1px solid #121212">
+                      ${renderBotanicalBlot(item.blot, 24)}
+                      <div style="font-size:9.5px;letter-spacing:0.16em;text-transform:uppercase;color:#121212">
+                        <span>Archive Index #${item.id} &nbsp;·&nbsp; ${item.botanicalLabel}</span>
+                      </div>
+                    </div>
+                    ${item.paragraphs.map(p => `<p>${p}</p>`).join("")}
+                    <div style="margin-top:22px;display:flex;gap:12px;flex-wrap:wrap">
+                      <button
+                        type="button"
+                        class="btn-primary"
+                        style="padding:11px 20px;font-size:10px"
+                        onclick="navigateTo('pdp', '${STATE.lastPdpHandle || "tribeca-matka-silk-emerald"}')"
+                      >
+                        Inspect Garment Crafted With This Technique ⟶
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-outline"
+                        style="padding:11px 20px;font-size:10px"
+                        onclick="navigateTo('collection', 'all-apparel')"
+                      >
+                        Browse All Collection Lots
+                      </button>
+                    </div>
+                  </div>
+                  <div style="aspect-ratio:4/3;overflow:hidden;background:var(--bg-secondary);border:1px solid var(--border-subtle)">
+                    <img src="${item.image}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover" />
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </section>
+
+      <!-- 5. CHAPTER IV: ARCHITECTURAL GALLERY DIPTYCH -->
+      <section class="masters-diptych" id="arch-chap-4">
+        <div style="text-align:center;max-width:760px;margin:0 auto">
+          <span class="fibre-to-garment__eyebrow">Chapter IV · In the Hands of the Maker</span>
+          <h2 class="fibre-to-garment__title">WE CHERISH THESE NUANCES FOR THEIR HUMAN TOUCH</h2>
+        </div>
+
+        <div class="masters-diptych__grid">
+          <article class="diptych-card" style="background:var(--bg-primary);padding:34px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+              <span style="font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted)">01 / Handspinning</span>
+              <img src="assets/blots/dot_goldenrod.png" alt="Goldenrod Dot" style="width:38px;height:38px;mix-blend-mode:multiply" />
+            </div>
+            <div class="diptych-card__media">
+              <img src="${SQS_CDN}3a6786b9-45ce-459e-83cb-4bee1d2e3554/184_HARTWICK_STYLE_FABRIC4R1A8940.jpg" alt="Handspinning — A Moment Held" />
+            </div>
+            <h3 style="font-family:var(--font-serif);font-size:23px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">
+              A Moment Held.
+            </h3>
+            <p style="font-family:var(--font-serif);font-size:15.5px;color:var(--text-secondary);line-height:1.8">
+              Where industrial spinning erases character in pursuit of uniformity, the hand-turned wheel honours the natural breath and subtle slub of raw cotton and silk.
+            </p>
+          </article>
+
+          <article class="diptych-card" style="background:var(--bg-primary);padding:34px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+              <span style="font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted)">02 / Handweaving</span>
+              <img src="assets/blots/dot_iron_rust.png" alt="Iron Marigold Dot" style="width:38px;height:38px;mix-blend-mode:multiply" />
+            </div>
+            <div class="diptych-card__media">
+              <img src="${SQS_CDN}8b35627c-73f1-47cc-8e79-c94a0388f034/125_HARTWICK_HANDWOVEN_TOKYO_SHIRT_IKAT.jpg" alt="Handweaving — A Process in Motion" />
+            </div>
+            <h3 style="font-family:var(--font-serif);font-size:23px;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px">
+              A Process in Motion.
+            </h3>
+            <p style="font-family:var(--font-serif);font-size:15.5px;color:var(--text-secondary);line-height:1.8">
+              Passed throw by throw across the pit loom, warp and weft unite without electricity—creating heirloom cloth that carries the quiet signature of its maker.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- 6. FROM THE HARTWICK ARCHIVE — AT THE PRINTING TABLE -->
+      <section class="masters-intro-split" style="border-bottom:none">
+        <div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <img src="assets/blots/dot_apricot.png" alt="Madder Dot" style="width:38px;height:38px;mix-blend-mode:multiply" />
+            <span class="fibre-to-garment__eyebrow" style="margin-bottom:0">From the Hartwick Archive</span>
+          </div>
+          <h2 class="fibre-to-garment__title" style="margin-bottom:18px">AT THE PRINTING TABLE</h2>
+          <p style="font-family:var(--font-serif);font-size:16px;color:var(--text-secondary);line-height:1.8;margin-bottom:18px">
+            Each block print begins as a seasoned teakwood block carved by hand, dipped into natural plant and mineral vats, and stamped layer by layer across metres of silk and Khadi. Between each of the 16 impressions, the cloth rests for a full day in open air.
+          </p>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:26px">
+            <button class="btn-primary" onclick="navigateTo('pdp', 'palma-fine-silk-block-print')">
+              Inspect Block-Printed Silk Piece ⟶
+            </button>
+            <button class="btn-outline" onclick="navigateTo('journal')">
+              Read The Journal ⟶
+            </button>
+          </div>
+        </div>
+        <div class="masters-intro-split__img" style="aspect-ratio:16/10">
+          <img
+            src="${SQS_CDN}0c0b1cbc-4c3e-43ad-b43d-1c2c4916289f/080_HARTWICK_OKANAGAN_ROBE_KALAMALKA_BLOCKPRINT.jpg"
+            alt="At the Printing Table"
+            style="filter:none"
+          />
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderOurStory() {
+  return `
+    <div class="editorial-page view-enter">
+      <header class="editorial-hero reveal-on-scroll">
+        <div class="brief-section-banner">
+          <span class="brief-tag">Brief §1.4 — About → Our Story (Verbatim Squarespace Copy &amp; Archival Photos)</span>
+        </div>
+        <span class="section-eyebrow">About Hartwick Atelier</span>
+        <h1 class="editorial-hero__title">Our Story</h1>
+        <p class="editorial-hero__lead">
+          “Hartwick Atelier is the culmination of decades of world travel as creatives in fashion and film. At its roots, each collection is a portrait of nature and sustainability through refined handcraft. It's an analogue love story.”
+        </p>
+      </header>
+
+      <div class="reveal-on-scroll" style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:64px">
+        <img src="${SQS_CDN}1738813975247-BRZ8Q0E5KZ9K0MY6SHL2/IMG_7025.jpeg" alt="Angela Hartwick Archive" style="aspect-ratio:4/3;object-fit:cover;width:100%" />
+        <img src="${SQS_CDN}1738813972432-DJ6MTSK4LYQOLCYX5APU/IMG_6991.jpeg" alt="Hartwick Atelier Travels" style="aspect-ratio:4/3;object-fit:cover;width:100%" />
+      </div>
+
+      <div class="story-timeline">
+        <div class="story-chapter reveal-on-scroll">
+          <div class="story-chapter__year">1990s</div>
+          <div>
+            <h3 style="font-family:var(--font-serif);font-size:22px;margin-bottom:10px">New York City &amp; Paris</h3>
+            <p style="color:var(--text-secondary)">My work in fashion started in New York City in the 90s as an assistant — first to a well-known Costume Designer, then to fashion stylists and photographers. When I was hired as an assistant to a French movie star and moved to Paris, fashion became a language that I learned and lived through cinema, tailoring, and textile archives.</p>
+          </div>
+        </div>
+
+        <div class="story-chapter reveal-on-scroll">
+          <div class="story-chapter__year">2002</div>
+          <div>
+            <h3 style="font-family:var(--font-serif);font-size:22px;margin-bottom:10px">Morocco &amp; Analogue Photography</h3>
+            <p style="color:var(--text-secondary)">In 2002, Daryl was starting his photography career and we spent a couple months in Morocco to shoot our first fashion book. Immersing ourselves in the souks, natural dye vats, and handloom guilds sparked a lifelong devotion to traditional craft.</p>
+          </div>
+        </div>
+
+        <div class="story-chapter reveal-on-scroll">
+          <div class="story-chapter__year">2003 – 2008</div>
+          <div>
+            <h3 style="font-family:var(--font-serif);font-size:22px;margin-bottom:10px">Costume Design &amp; Character Through Cloth</h3>
+            <p style="color:var(--text-secondary)">In 2003, I became the lead costume designer for a French TV series. We shot 8 episodes concurrently with 8 main characters, developing narrative and emotion through the drape, weight, and history of fabric.</p>
+          </div>
+        </div>
+
+        <div class="story-chapter reveal-on-scroll">
+          <div class="story-chapter__year">Today</div>
+          <div>
+            <h3 style="font-family:var(--font-serif);font-size:22px;margin-bottom:10px">Hartwick Atelier</h3>
+            <p style="color:var(--text-secondary)">Working directly with master weavers, natural colorists, woodblock carvers, and goldsmiths across India, Hartwick Atelier creates limited-edition, numbered lots that honour slow time, human hands, and heirloom quality.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderContactPage() {
+  return `
+    <div class="editorial-page view-enter">
+      <header class="editorial-hero reveal-on-scroll">
+        <div class="brief-section-banner">
+          <span class="brief-tag">Brief §1.4 &amp; §2.10 — Contact Page (contact@HARTWICKATELIER.com)</span>
+        </div>
+        <span class="section-eyebrow">Client Services &amp; Enquiries</span>
+        <h1 class="editorial-hero__title">Contact</h1>
+        <p class="editorial-hero__lead">
+          For private client styling, sizing assistance, or press enquiries, please reach out to our atelier directly at <a href="mailto:contact@HARTWICKATELIER.com" style="text-decoration:underline">contact@HARTWICKATELIER.com</a> or via the form below.
+        </p>
+      </header>
+
+      <div class="contact-box reveal-on-scroll">
+        <form onsubmit="handleContactSubmit(event)">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" class="form-control" required placeholder="Your name" />
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" class="form-control" required placeholder="your@email.com" />
+          </div>
+          <div class="form-group">
+            <label>Subject</label>
+            <input type="text" class="form-control" placeholder="Order / Sizing / Lot 0325 Pre-Order Enquiry" />
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea class="form-control" rows="5" required placeholder="How can our atelier assist you?"></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="width:100%">Send Message</button>
+          <div id="contact-form-feedback" class="dispatch-feedback"></div>
+        </form>
+      </div>
+    </div>
+  `;
+}
+
+function renderSizeGuidePage() {
+  const prod = window.HARTWICK_PRODUCTS.find(p => p.handle === (STATE.lastPdpHandle || STATE.currentProductHandle)) || window.HARTWICK_PRODUCTS[0];
+  const garmentName = prod ? (prod.subtitle || prod.title) : "Garment";
+
+  return `
+    <div class="editorial-page view-enter">
+      <div style="margin-bottom:28px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <button class="btn-outline" onclick="returnToProductFromMasters()" style="display:inline-flex;align-items:center;gap:10px;padding:11px 22px">
+          <span>← Return to ${garmentName}</span>
+        </button>
+        <button class="btn-outline" onclick="navigateTo('collection', 'all-apparel')" style="padding:11px 20px">
+          Browse Collection ⟶
+        </button>
+      </div>
+
+      <header class="editorial-hero reveal-on-scroll">
+        <div class="brief-section-banner">
+          <span class="brief-tag">Brief §1.4 &amp; §4.4 — Size Guide (XS – XL)</span>
+          ${STATE.phase2Enabled ? `<span class="brief-tag brief-tag--phase2" style="margin-left:8px">§8.6 Interactive Size Calculator</span>` : ""}
+        </div>
+        <span class="section-eyebrow">Garment Measurements</span>
+        <h1 class="editorial-hero__title">Size Guide</h1>
+        <p class="editorial-hero__lead">
+          Hartwick Atelier garments are tailored for a relaxed yet structured drape. All pieces are offered in sizes XS through XL. Click any size row below to select it and return directly to your garment.
+        </p>
+        <div style="margin-top:20px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+          ${STATE.phase2Enabled ? `
+            <button class="btn-primary" onclick="openSizeRecommendationModal()">Launch Interactive Size Calculator</button>
+          ` : ""}
+          <button class="btn-outline" onclick="returnToProductFromMasters()">← Back to ${garmentName}</button>
+        </div>
+      </header>
+
+      <table class="size-table reveal-on-scroll">
+        <thead>
+          <tr>
+            <th>Hartwick Size</th>
+            <th>EU</th>
+            <th>UK</th>
+            <th>Bust (cm)</th>
+            <th>Natural Waist (cm)</th>
+            <th>Hip (cm)</th>
+            <th>Select &amp; Return</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>XS</strong></td><td>34</td><td>6</td><td>80 – 84</td><td>63 – 67</td><td>88 – 92</td>
+            <td><button class="btn-outline" style="padding:6px 14px;font-size:9.5px" onclick="selectSizeAndReturnToPdp('XS')">Select XS →</button></td>
+          </tr>
+          <tr>
+            <td><strong>S</strong></td><td>36</td><td>8 – 10</td><td>85 – 89</td><td>68 – 72</td><td>93 – 97</td>
+            <td><button class="btn-outline" style="padding:6px 14px;font-size:9.5px" onclick="selectSizeAndReturnToPdp('S')">Select S →</button></td>
+          </tr>
+          <tr>
+            <td><strong>M</strong></td><td>38 – 40</td><td>12</td><td>90 – 95</td><td>73 – 78</td><td>98 – 103</td>
+            <td><button class="btn-outline" style="padding:6px 14px;font-size:9.5px" onclick="selectSizeAndReturnToPdp('M')">Select M →</button></td>
+          </tr>
+          <tr>
+            <td><strong>L</strong></td><td>42</td><td>14</td><td>96 – 101</td><td>79 – 84</td><td>104 – 109</td>
+            <td><button class="btn-outline" style="padding:6px 14px;font-size:9.5px" onclick="selectSizeAndReturnToPdp('L')">Select L →</button></td>
+          </tr>
+          <tr>
+            <td><strong>XL</strong></td><td>44</td><td>16</td><td>102 – 108</td><td>85 – 91</td><td>110 – 116</td>
+            <td><button class="btn-outline" style="padding:6px 14px;font-size:9.5px" onclick="selectSizeAndReturnToPdp('XL')">Select XL →</button></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="margin-top:36px;text-align:center">
+        <button class="btn-primary" onclick="returnToProductFromMasters()">
+          ← Return to ${garmentName} (Size ${STATE.selectedSize})
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderReturnsPolicyPage() {
+  const prod = window.HARTWICK_PRODUCTS.find(p => p.handle === (STATE.lastPdpHandle || STATE.currentProductHandle)) || window.HARTWICK_PRODUCTS[0];
+  const garmentName = prod ? (prod.subtitle || prod.title) : "Garment";
+
+  return `
+    <div class="editorial-page view-enter">
+      <div style="margin-bottom:28px">
+        <button class="btn-outline" onclick="returnToProductFromMasters()" style="display:inline-flex;align-items:center;gap:10px;padding:11px 22px">
+          <span>← Return to ${garmentName}</span>
+        </button>
+      </div>
+      <header class="editorial-hero reveal-on-scroll">
+        <div class="brief-section-banner">
+          <span class="brief-tag">Brief §5.4 — Returns Policy Page &amp; §5.3 Shipping Zones</span>
+        </div>
+        <span class="section-eyebrow">Shipping, Duties &amp; Returns</span>
+        <h1 class="editorial-hero__title">Returns Policy</h1>
+        <p class="editorial-hero__lead">
+          Every Hartwick Atelier garment is crafted by hand in limited quantities. We want you to treasure your piece for years to come.
+        </p>
+      </header>
+      <div class="reveal-on-scroll" style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:24px;color:var(--text-secondary)">
+        <div>
+          <h3 style="font-family:var(--font-serif);color:var(--text-primary);font-size:21px;margin-bottom:8px">[§5.4] 14-Day Return Window</h3>
+          <p>We accept returns on unworn, unwashed items with original lot tags attached within 14 days of delivery across the European Union, United Kingdom, and United States. To request a return authorization, please email <strong>contact@HARTWICKATELIER.com</strong> with your order number.</p>
+        </div>
+        <div>
+          <h3 style="font-family:var(--font-serif);color:var(--text-primary);font-size:21px;margin-bottom:8px">[§5.3 &amp; §8.7] EU, UK &amp; US Shipping Rates</h3>
+          <p>Orders are dispatched via insured DHL Express from our European fulfilment studio. Complimentary express shipping is offered on orders above €500 / £430 / $550. Standard insured shipping is €18 (EU), £22 (UK), and $45 (US — Phase 2 §8.7).</p>
+        </div>
+        <div>
+          <h3 style="font-family:var(--font-serif);color:var(--text-primary);font-size:21px;margin-bottom:8px">Handcrafted Nuances</h3>
+          <p>Because our textiles are spun, woven, and block-printed entirely by hand using natural plant and mineral dyes, subtle variations in weave slub and dye tone are intrinsic hallmarks of authenticity and are not considered defects.</p>
+        </div>
+        <div style="margin-top:16px">
+          <button class="btn-primary" onclick="returnToProductFromMasters()">← Return to ${garmentName}</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==========================================================================
+// INTERACTIVE HANDLERS & SCROLL REVEAL OBSERVER
+// ==========================================================================
+function initScrollAnimations() {
+  const elements = document.querySelectorAll(".reveal-on-scroll, .luxury-img-reveal");
+  if (!("IntersectionObserver" in window)) {
+    elements.forEach(el => el.classList.add("is-visible"));
+    return;
+  }
+
+  const observer = new IntersectionObserver(
+    entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+  );
+
+  elements.forEach(el => observer.observe(el));
+}
+
+function selectPdpImage(idx) {
+  STATE.selectedImageIndex = idx;
+  renderApp();
+}
+
+function selectPdpSize(size) {
+  STATE.selectedSize = size;
+  renderApp();
+}
+
+function toggleAccordion(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle("open");
+}
+
+function changeCurrency(newCurr) {
+  STATE.currency = newCurr;
+  renderApp();
+  renderCartDrawer();
+}
+
+function changeShippingRegion(region) {
+  STATE.shippingRegion = region;
+  renderCartDrawer();
+}
+
+function addToCart(handle) {
+  const product = window.HARTWICK_PRODUCTS.find(p => p.handle === handle);
+  if (!product) return;
+  const key = `${handle}__${STATE.selectedSize}`;
+  const existing = STATE.cart.find(item => item.key === key);
+  if (existing) {
+    existing.qty += 1;
+  } else {
+    STATE.cart.push({
+      key,
+      product,
+      size: STATE.selectedSize,
+      qty: 1
+    });
+  }
+  renderHeaderAndFooterNav();
+  renderCartDrawer();
+  openCartDrawer();
+}
+
+function removeFromCart(key) {
+  STATE.cart = STATE.cart.filter(item => item.key !== key);
+  renderHeaderAndFooterNav();
+  renderCartDrawer();
+}
+
+function openCartDrawer() {
+  document.getElementById("cart-backdrop").classList.add("open");
+  document.getElementById("cart-drawer").classList.add("open");
+}
+
+function closeCartDrawer() {
+  document.getElementById("cart-backdrop").classList.remove("open");
+  document.getElementById("cart-drawer").classList.remove("open");
+}
+
+function renderCartDrawer() {
+  const container = document.getElementById("cart-drawer-body");
+  const footer = document.getElementById("cart-drawer-footer");
+  if (!container || !footer) return;
+
+  if (STATE.cart.length === 0) {
+    container.innerHTML = `
+      <div style="text-align:center;margin:auto;color:var(--text-muted)">
+        <p style="font-family:var(--font-serif);font-size:20px;margin-bottom:12px;color:var(--text-primary)">Your bag is empty</p>
+        <p style="font-size:13.5px;margin-bottom:24px">Explore our limited edition handwoven collections (#01–#66).</p>
+        <button class="btn-outline" onclick="closeCartDrawer();navigateTo('collection','all-apparel')">Explore Apparel</button>
+      </div>
+    `;
+    footer.innerHTML = "";
+    return;
+  }
+
+  container.innerHTML = STATE.cart.map(item => `
+    <div class="cart-item">
+      <img class="cart-item__img" src="${item.product.images[0]}" alt="${item.product.title}" />
+      <div>
+        <div style="display:flex;justify-content:space-between;gap:8px">
+          <h4 style="font-size:12px;letter-spacing:0.12em;text-transform:uppercase">#${String(item.product.catalogNumber || 1).padStart(2, "0")} ${item.product.title}</h4>
+          <button onclick="removeFromCart('${item.key}')" style="background:none;border:none;cursor:pointer;font-size:16px;line-height:1">×</button>
+        </div>
+        <p style="font-family:var(--font-serif);font-style:italic;font-size:13px;color:var(--text-secondary)">${item.product.commercial_expression}</p>
+        <p style="font-size:11.5px;color:var(--text-muted);margin:4px 0">Size: ${item.size} · Qty: ${item.qty} · ${item.product.lot}</p>
+        <p style="font-size:13.5px;font-weight:500">${formatPrice(item.product)}</p>
+      </div>
+    </div>
+  `).join("");
+
+  const subtotalEur = STATE.cart.reduce((sum, i) => sum + i.product.price_eur * i.qty, 0);
+  const shippingEur = subtotalEur >= 500 ? 0 : (STATE.shippingRegion === "US" ? 45 : (STATE.shippingRegion === "UK" ? 25 : 18));
+  const totalEur = subtotalEur + shippingEur;
+
+  footer.innerHTML = `
+    <div style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap">
+      <span class="brief-tag">§5.1 Shopify Payments + Stripe</span>
+      <span class="brief-tag">§5.2 EUR/GBP</span>
+      <span class="brief-tag">§5.3 EU/UK Shipping</span>
+      ${STATE.phase2Enabled ? `<span class="brief-tag brief-tag--phase2">§8.3 Loyalty &amp; §8.7 US/USD</span>` : ""}
+    </div>
+    <div style="margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;font-size:12px">
+      <span style="text-transform:uppercase;letter-spacing:0.12em;color:var(--text-muted)">Shipping Zone [§5.3]:</span>
+      <select onchange="changeShippingRegion(this.value)" style="padding:4px 8px;border:1px solid var(--border-strong);background:var(--bg-primary);font-size:11.5px">
+        <option value="EU" ${STATE.shippingRegion === "EU" ? "selected" : ""}>European Union (DHL Express) [§5.3]</option>
+        <option value="UK" ${STATE.shippingRegion === "UK" ? "selected" : ""}>United Kingdom (DHL Express) [§5.3]</option>
+        ${STATE.phase2Enabled ? `<option value="US" ${STATE.shippingRegion === "US" ? "selected" : ""}>United States (DHL Express) [§8.7 P2]</option>` : ""}
+      </select>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;color:var(--text-secondary)">
+      <span>Subtotal</span>
+      <span>${formatAmount(subtotalEur)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;color:var(--text-secondary)">
+      <span>Shipping (${STATE.shippingRegion})</span>
+      <span>${shippingEur === 0 ? "Complimentary" : formatAmount(shippingEur)}</span>
+    </div>
+    ${STATE.phase2Enabled ? `
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:12px;color:#5C4628">
+        <span>[§8.3] Atelier Circle Loyalty Earned</span>
+        <span>+${subtotalEur * 2} Points</span>
+      </div>
+    ` : ""}
+    <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:500;padding-top:12px;border-top:1px solid var(--border-subtle);margin-bottom:18px">
+      <span>Total (${STATE.currency}) [§5.2]</span>
+      <span>${formatAmount(totalEur)}</span>
+    </div>
+    <button class="btn-primary" style="width:100%" onclick="handleCheckoutDemo()">
+      Proceed to Checkout
+    </button>
+  `;
+}
+
+function handleCheckoutDemo() {
+  alert(
+    `HARTWICK ATELIER — SHOPIFY CHECKOUT (§5.1–§5.5 & §8.7)\n\n` +
+    "• [§5.1] Payment Gateway: Shopify Payments + Stripe Active\n" +
+    "• [§5.2 & §8.7] Multi-Currency: " + STATE.currency + " (EUR, GBP, USD)\n" +
+    "• [§5.3 & §8.7] Shipping Zone: " + STATE.shippingRegion + " (EU, UK, US Configured)\n" +
+    "• [§5.4] Returns Policy linked in Footer\n" +
+    "• [§5.5] Transactional Email: Default Shopify confirmation with Hartwick Atelier logo."
+  );
+}
+
+function handleNewsletterSubmit(e, feedbackId) {
+  e.preventDefault();
+  const el = document.getElementById(feedbackId);
+  if (el) {
+    el.innerHTML = `[§6.3] Thank you for joining <strong>The Dispatch</strong>. Please check your inbox for <em>"Confirm your subscription to The Dispatch"</em> to complete your GDPR double opt-in.`;
+  }
+  e.target.reset();
+}
+
+function handleContactSubmit(e) {
+  e.preventDefault();
+  const el = document.getElementById("contact-form-feedback");
+  if (el) {
+    el.innerHTML = `Thank you. Your message has been sent to <strong>contact@HARTWICKATELIER.com</strong>.`;
+  }
+  e.target.reset();
+}
+
+function openDispatchPopup() {
+  const modal = document.getElementById("dispatch-popup-backdrop");
+  if (modal) modal.classList.add("open");
+}
+
+function closeDispatchPopup() {
+  const modal = document.getElementById("dispatch-popup-backdrop");
+  if (modal) modal.classList.remove("open");
+  localStorage.setItem("hartwick_dispatch_dismissed", Date.now().toString());
+}
+
+// ==========================================================================
+// MAIN RENDERER
+// ==========================================================================
+function renderApp() {
+  const main = document.getElementById("app-main");
+  if (!main) return;
+
+  switch (STATE.currentView) {
+    case "home":
+      main.innerHTML = renderHomepage();
+      break;
+    case "collection":
+      main.innerHTML = renderCollectionPage();
+      break;
+    case "pdp":
+      main.innerHTML = renderProductPage();
+      break;
+    case "the-masters":
+      main.innerHTML = renderTheMasters();
+      break;
+    case "our-story":
+      main.innerHTML = renderOurStory();
+      break;
+    case "contact":
+      main.innerHTML = renderContactPage();
+      break;
+    case "size-guide":
+      main.innerHTML = renderSizeGuidePage();
+      break;
+    case "returns-policy":
+      main.innerHTML = renderReturnsPolicyPage();
+      break;
+    case "journal":
+      main.innerHTML = renderJournalPage();
+      break;
+    case "wholesale":
+      main.innerHTML = renderWholesalePage();
+      break;
+    case "wishlist":
+      main.innerHTML = renderWishlistPage();
+      break;
+    default:
+      main.innerHTML = renderHomepage();
+  }
+
+  requestAnimationFrame(() => {
+    document.documentElement.scrollLeft = 0;
+    document.body.scrollLeft = 0;
+    initScrollAnimations();
+  });
+}
+
+window.addEventListener("scroll", () => {
+  const y = window.scrollY;
+  const header = document.getElementById("site-header");
+  if (header) {
+    if (y > 40) {
+      header.classList.add("scrolled");
+    } else {
+      header.classList.remove("scrolled");
+    }
+  }
+  const heroImg = document.getElementById("hero-parallax-img");
+  if (heroImg && y < 900) {
+    heroImg.style.transform = `translate3d(0, ${y * 0.18}px, 0) scale(1.03)`;
+  }
+}, { passive: true });
+
+window.setFtgActiveCol = function(colEl) {
+  if (!colEl) return;
+  const track = colEl.closest(".ftg-3d-track");
+  if (!track) return;
+  track.querySelectorAll(".ftg-3d-col").forEach(c => {
+    if (c === colEl) {
+      c.classList.add("is-active-col");
+    } else {
+      c.classList.remove("is-active-col");
+    }
+  });
+  track.classList.add("has-active-col");
+};
+
+window.clearFtgActiveCol = function(colEl) {
+  if (!colEl) return;
+  colEl.classList.remove("is-active-col");
+  const track = colEl.closest(".ftg-3d-track");
+  if (!track) return;
+  if (!track.querySelector(".ftg-3d-col.is-active-col")) {
+    track.classList.remove("has-active-col");
+  }
+};
+
+window.resetAllFtgCols = function(trackEl) {
+  if (!trackEl) return;
+  trackEl.classList.remove("has-active-col");
+  trackEl.querySelectorAll(".ftg-3d-col").forEach(c => c.classList.remove("is-active-col"));
+};
+
+function applyHashRouting() {
+  const rawHash = (window.location.hash || "").replace(/^#\/?/, "").trim();
+  if (!rawHash) return;
+  const parts = rawHash.split("/");
+  const view = parts[0];
+  const param = parts[1];
+  if (view === "pdp" && param) {
+    STATE.currentView = "pdp";
+    STATE.currentProductHandle = param;
+    STATE.lastPdpHandle = param;
+    STATE.selectedImageIndex = 0;
+  } else if (view === "collection") {
+    STATE.currentView = "collection";
+    STATE.currentCollection = param || "all-apparel";
+  } else if (view === "home" || view === "the-masters" || view === "our-story" || view === "contact" || view === "returns-policy") {
+    STATE.currentView = view;
+  }
+}
+
+window.addEventListener("hashchange", () => {
+  applyHashRouting();
+  renderApp();
+  updateReviewToolbarActive();
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  applyHashRouting();
+  document.body.classList.toggle("hide-brief-tags", !STATE.showBriefBadges);
+  document.body.classList.toggle("concept-a", STATE.designConcept === "A");
+  document.body.classList.toggle("concept-b", STATE.designConcept === "B");
+  renderHeaderAndFooterNav();
+  renderApp();
+  renderCartDrawer();
+  updateReviewToolbarActive();
+});

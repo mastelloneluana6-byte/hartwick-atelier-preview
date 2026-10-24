@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HARTWICK ATELIER — Limited Edition Handwoven Collections</title>
+  <link rel="icon" type="image/x-icon" href="https://images.squarespace-cdn.com/content/v1/662ec4008fa24077e0d8b6b0/6ffb0411-49ee-406f-acdd-3051019e6411/favicon.ico?format=100w" />
+
+  <!-- Typography matching current Squarespace site: Spectral (Serif) & Montserrat (Clean Sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Spectral:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css?v=43" />
+</head>
+<body class="concept-b">
+
+  <!-- Clean Single-Line Presentation Bar: [Direction 2 Chosen]  |  [Connected Flow: Homepage -> Product Page -> Fibre to Garment -> The Masters]  |  [Garment] -->
+  <div class="announcement-bar">
+    <!-- LEFT: Direction 2 Chosen (with optional toggle to compare Direction 1) -->
+    <div class="announcement-bar__group">
+      <span class="announcement-bar__label">Chosen Direction:</span>
+      <button
+        id="concept-btn-b"
+        class="review-jump-btn review-jump-btn--active"
+        onclick="setDesignConcept('B')"
+      >
+        ✦ Direction 2: Botanical Atelier (Chosen)
+      </button>
+      <button
+        id="concept-btn-a"
+        class="review-jump-btn"
+        onclick="setDesignConcept('A')"
+      >
+        Direction 1
+      </button>
+    </div>
+
+    <!-- CENTER: The Connected Flow (Homepage -> Product Page -> Fibre to Garment -> The Masters) -->
+    <div class="announcement-bar__flow">
+      <span class="announcement-bar__label">Flow:</span>
+      <button
+        class="review-jump-btn"
+        id="quick-btn-home"
+        onclick="navigateTo('home')"
+      >
+        Homepage
+      </button>
+      <span class="announcement-bar__arrow">→</span>
+      <button
+        class="review-jump-btn review-jump-btn--active"
+        id="quick-btn-pdp"
+        onclick="navigateTo('pdp', STATE.currentProductHandle || 'tribeca-matka-silk-emerald')"
+      >
+        1. Product Page
+      </button>
+      <span class="announcement-bar__arrow">→</span>
+      <button
+        class="review-jump-btn"
+        id="quick-btn-record"
+        onclick="goToProductionRecordFlow()"
+      >
+        2. Fibre to Garment &amp; Record
+      </button>
+      <span class="announcement-bar__arrow">→</span>
+      <button
+        class="review-jump-btn"
+        id="quick-btn-masters"
+        onclick="navigateTo('the-masters')"
+      >
+        3. The Masters &amp; Glossary
+      </button>
+    </div>
+
+    <!-- RIGHT: Sample Garment Selector -->
+    <div class="announcement-bar__utils">
+      <span class="announcement-bar__label">Garment:</span>
+      <select
+        id="garment-switcher-select"
+        aria-label="Select Sample Garment"
+        onchange="navigateTo('pdp', this.value)"
+        class="announcement-bar__select"
+      >
+        <option value="tribeca-matka-silk-emerald">Tribeca Skirt — Emerald</option>
+        <option value="tribeca-checkerboard-navy">Tribeca Skirt — Navy</option>
+        <option value="palma-fresh-pink-cotton">Palma Skirt — Fresh Pink</option>
+        <option value="samarkand-black-marble-inlay">Samarkand Dress — Black</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Hidden legacy banner (replaced by inline return pill + top 3-step flow bar) -->
+  <div id="flow-return-banner" style="display:none"></div>
+
+  <!-- SECTION 1 — SITE STRUCTURE & PRIMARY NAVIGATION (Matching Aloha Design Screenshots) -->
+  <header class="site-header" id="site-header">
+    <div class="site-header__inner">
+      <!-- Primary Navigation Left: COLLECTION | THE MASTERS | JOURNAL | THE REGISTER -->
+      <nav class="primary-nav" id="primary-nav" aria-label="Primary Navigation"></nav>
+
+      <!-- Center Monogram & Transparent Wordmark Logo (Zero White Box!) -->
+      <div class="site-logo" onclick="navigateTo('home')" title="Hartwick Atelier Home">
+        <div class="site-logo__monogram">[H|I]</div>
+        <div class="site-logo__wordmark">
+          <span class="site-logo__wordmark-main">HARTWICK</span>
+          <span class="site-logo__wordmark-sub">ATELIER</span>
+        </div>
+      </div>
+
+      <!-- Right Actions: Globe | A (Font) | THE CIRCLE | BAG -->
+      <div class="header-actions" id="header-actions"></div>
+    </div>
+  </header>
+
+  <!-- DYNAMIC MAIN CONTENT -->
+  <main id="app-main"></main>
+
+  <!-- SECTION 2.10 — EXCLUSIVE MODERN ATELIER FOOTER (Seamless Khadi-Linen Transition) -->
+  <footer class="site-footer" id="sec-2-10-footer">
+    <div class="site-footer__transition-line" aria-hidden="true"></div>
+    <div class="site-footer__inner">
+      <!-- Column 1: Brand Identity & Heritage Philosophy -->
+      <div class="footer-brand">
+        <div class="footer-brand__logo-wrap" onclick="navigateTo('home')" style="cursor:pointer" title="Hartwick Atelier Home">
+          <img
+            class="footer-brand__crest"
+            src="https://images.squarespace-cdn.com/content/v1/662ec4008fa24077e0d8b6b0/a207312b-4862-493d-81d6-ac230189984a/Hartwick_logo_PlainFrame_Square_SansAtelier+Black+.png"
+            alt="Hartwick Crest"
+          />
+          <div class="footer-brand__wordmark">
+            <span class="footer-brand__wordmark-main">HARTWICK</span>
+            <span class="footer-brand__wordmark-sub">ATELIER</span>
+          </div>
+        </div>
+        <p class="footer-brand__philosophy">
+          “Handspun and handwoven fabrics, natural and ayurvedic dyes, and exquisite heritage handwork—created in numbered lots.”
+        </p>
+        <span class="footer-brand__provenance">European Studio · Master Guilds in India</span>
+      </div>
+
+      <!-- Column 2: Curated Collections -->
+      <div class="footer-col">
+        <h4 class="footer-links-title">Collections</h4>
+        <ul class="footer-links-list">
+          <li><button onclick="navigateTo('collection', 'all-apparel')">All Apparel</button></li>
+          <li><button onclick="navigateTo('collection', 'skirts-dresses')">Skirts &amp; Dresses</button></li>
+          <li><button onclick="navigateTo('collection', 'shirts-blouses')">Shirts &amp; Blouses</button></li>
+          <li><button onclick="navigateTo('collection', 'trousers')">Trousers</button></li>
+          <li><button onclick="navigateTo('collection', 'fine-silk')">Fine Silk</button></li>
+          <li><button onclick="navigateTo('collection', 'fine-jewellery')">Fine Jewellery</button></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: The House (Without Size Guide) -->
+      <div class="footer-col">
+        <h4 class="footer-links-title">The House</h4>
+        <ul class="footer-links-list" id="footer-links-list"></ul>
+      </div>
+
+      <!-- Column 4: Private Client Concierge -->
+      <div class="footer-col footer-col--concierge">
+        <h4 class="footer-links-title">Private Client</h4>
+        <p class="footer-concierge__copy">
+          For private viewing requests, custom archive inquiries, or garment care guidance:
+        </p>
+        <a href="mailto:contact@hartwickatelier.com" class="footer-concierge__email">
+          contact@hartwickatelier.com
+        </a>
+        <div class="footer-concierge__links">
+          <button type="button" class="footer-concierge__action" onclick="openPrivateAppointmentModal()">
+            Book a Private Appointment ↗
+          </button>
+          <a href="https://instagram.com/worldofhartwickatelier" target="_blank" rel="noopener" class="footer-concierge__social">
+            Instagram · @worldofhartwickatelier ↗
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="site-footer__bottom">
+      <span>&copy; 2026 HARTWICK ATELIER · All Rights Reserved</span>
+      <span id="footer-currency-note">EUR (€) · GBP (£) · USD ($) — Insured Worldwide Fulfilment</span>
+    </div>
+  </footer>
+
+  <!-- SECTION 6 — KLAVIYO POPUP ("THE DISPATCH" — 10-SECOND DELAY ON FIRST VISIT) -->
+  <div class="modal-backdrop" id="dispatch-popup-backdrop">
+    <div class="dispatch-popup" role="dialog" aria-labelledby="popup-title">
+      <button class="popup-close-btn" onclick="closeDispatchPopup()" aria-label="Close popup">×</button>
+      <div class="dispatch-popup__img">
+        <img
+          src="https://images.squarespace-cdn.com/content/v1/662ec4008fa24077e0d8b6b0/647043be-fcc2-4ccd-a1ed-902e681194c4/156_HARTWICK_EDITORIAL_PARIS.jpg"
+          alt="The Dispatch Hartwick Atelier"
+        />
+      </div>
+      <div class="dispatch-popup__content">
+        <div style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="brief-tag">Brief §6.1 — Klaviyo "The Dispatch"</span>
+          <span class="brief-tag">§6.2 — 10s Delay &amp; 30-Day Cookie</span>
+          <span class="brief-tag">§6.3 — GDPR Double Opt-In</span>
+        </div>
+        <span class="section-eyebrow">Klaviyo · Double Opt-In</span>
+        <h3 id="popup-title" style="font-family:var(--font-serif);font-size:26px;font-weight:400;margin-bottom:14px">
+          The Dispatch
+        </h3>
+        <p style="font-size:15px;color:var(--text-secondary);line-height:1.75;margin-bottom:26px">
+          “The Dispatch — News, new collections, and the stories behind them. Join the list.”
+        </p>
+        <form class="dispatch-form" onsubmit="handleNewsletterSubmit(event, 'popup-dispatch-msg')" style="margin-bottom:12px">
+          <input
+            type="email"
+            class="dispatch-form__input"
+            placeholder="Your email address"
+            required
+          />
+          <button type="submit" class="dispatch-form__btn" style="padding:14px 22px">Subscribe</button>
+        </form>
+        <div id="popup-dispatch-msg" class="dispatch-feedback"></div>
+        <button
+          onclick="closeDispatchPopup()"
+          style="background:none;border:none;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text-muted);margin-top:16px;cursor:pointer;text-align:left"
+        >
+          No thank you — dismiss for 30 days [§6.2]
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 2 INTERACTIVE MODAL (Craft Glossary Annotation §8.1 / Size Recommendation Tool §8.6) -->
+  <div class="modal-backdrop" id="phase2-modal-backdrop" onclick="closePhase2Modal()">
+    <div
+      class="contact-box"
+      style="max-width:600px;width:100%;background:var(--bg-primary);position:relative;border:1px solid var(--text-primary)"
+      onclick="event.stopPropagation()"
+    >
+      <button class="popup-close-btn" onclick="closePhase2Modal()">×</button>
+      <div id="phase2-modal-body"></div>
+    </div>
+  </div>
+
+  <!-- SHOPPING BAG DRAWER (SECTION 5 — CHECKOUT, PAYMENTS & SHIPPING + PHASE 2 §8.3 & §8.7) -->
+  <div class="modal-backdrop" id="cart-backdrop" onclick="closeCartDrawer()"></div>
+  <aside class="cart-drawer" id="cart-drawer" aria-label="Shopping Bag">
+    <div class="cart-drawer__header">
+      <div>
+        <span class="brief-tag" style="margin-bottom:4px">Brief §5.1–§5.5 &amp; §8.7</span>
+        <h3 class="cart-drawer__title">Shopping Bag</h3>
+      </div>
+      <button onclick="closeCartDrawer()" style="background:none;border:none;font-size:24px;cursor:pointer;line-height:1">×</button>
+    </div>
+    <div class="cart-drawer__items" id="cart-drawer-body"></div>
+    <div class="cart-drawer__footer" id="cart-drawer-footer"></div>
+  </aside>
+
+  <script src="js/products.js?v=43"></script>
+  <script src="js/app.js?v=43"></script>
+</body>
+</html>
