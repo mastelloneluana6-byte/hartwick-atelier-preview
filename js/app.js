@@ -27,8 +27,40 @@ const STATE = {
   currency: "EUR",
   shippingRegion: "EU",
   cart: [],
-  wishlist: ["tribeca-matka-silk-emerald", "palma-fresh-pink-cotton"]
+  wishlist: ["tribeca-matka-silk-emerald", "palma-fresh-pink-cotton"],
+  collectionSearchQuery: ""
 };
+
+function handleCollectionSearch(val) {
+  STATE.collectionSearchQuery = val;
+  renderApp();
+  const input = document.getElementById("editorial-collection-search-input");
+  if (input) {
+    input.focus();
+    const len = input.value.length;
+    input.setSelectionRange(len, len);
+  }
+}
+
+function clearCollectionSearch() {
+  STATE.collectionSearchQuery = "";
+  renderApp();
+  const input = document.getElementById("editorial-collection-search-input");
+  if (input) input.focus();
+}
+
+function openSearchInCollection() {
+  if (STATE.currentView !== "collection") {
+    navigateTo("collection", "all-apparel");
+  }
+  setTimeout(() => {
+    const input = document.getElementById("editorial-collection-search-input");
+    if (input) {
+      input.scrollIntoView({ behavior: "smooth", block: "center" });
+      input.focus();
+    }
+  }, 80);
+}
 
 // ==========================================================================
 // SHANNON BOTANICAL DYES — REAL HAND-PAINTED BOTANICAL DOTS & SWATCHES
@@ -504,59 +536,21 @@ function renderHeaderAndFooterNav() {
 
   if (nav) {
     nav.innerHTML = `
-      <!-- 1. COLLECTION + (Hale Mercantile Full-Width Luxury Megamenu) -->
+      <!-- 1. COLLECTION + (Quiet Luxury Streamlined Apparel Megamenu) -->
       <div class="nav-item nav-item--megamenu">
         <button class="nav-link" onclick="navigateTo('collection', 'all-apparel')">
           <span>Collection</span>
           <span class="nav-caret">+</span>
         </button>
-        <div class="nav-megamenu nav-megamenu--hale">
-          <div class="nav-megamenu--hale__inner">
-            <!-- Column 1: Apparel -->
-            <div class="nav-megamenu__col">
-              <span class="nav-megamenu__eyebrow">Apparel</span>
-              <button class="nav-megamenu__link nav-megamenu__link--featured" onclick="navigateTo('collection', 'all-apparel')">All Apparel</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'skirts-dresses')">Skirts &amp; Dresses</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'shirts-blouses')">Shirts &amp; Blouses</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'trousers')">Trousers</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'coats-accessories')">Coats &amp; Robes</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'lounge')">Lounge</button>
-            </div>
-
-            <!-- Column 2: Heirloom Craft -->
-            <div class="nav-megamenu__col">
-              <span class="nav-megamenu__eyebrow">Heirloom Pieces</span>
-              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'fine-silk')">Fine Silk Block Prints</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'fine-jewellery')">22k/23k Fine Jewellery</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('the-masters')">Handspun Khadi Cloth</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('the-masters')">Banaras Gold Brocade</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('collection', 'lot-0325')">Lot 0325 Reservations</button>
-            </div>
-
-            <!-- Column 3: The Living Archive -->
-            <div class="nav-megamenu__col">
-              <span class="nav-megamenu__eyebrow">Living Colour</span>
-              <button class="nav-megamenu__link" onclick="navigateToMastersTechnique('06')">Botanical &amp; Ayurvedic Dyes</button>
-              <button class="nav-megamenu__link" onclick="navigateToMastersTechnique('04')">16-Step Hand Block Printing</button>
-              <button class="nav-megamenu__link" onclick="navigateToMastersTechnique('02')">Charkha Hand Spinning</button>
-              <button class="nav-megamenu__link" onclick="navigateToMastersTechnique('03')">Pit Loom Handweaving</button>
-              <button class="nav-megamenu__link" onclick="navigateTo('the-masters')">The Master Dossiers</button>
-            </div>
-
-            <!-- Column 4: Editorial Spotlight -->
-            <div class="nav-megamenu__editorial">
-              <span class="nav-megamenu__eyebrow">Editorial Spotlight</span>
-              <div class="nav-megamenu__spotlight-card" onclick="navigateTo('pdp', 'tribeca-matka-silk-emerald')">
-                <div class="nav-megamenu__spotlight-img-wrap">
-                  <img src="${SQS_CDN}1761394286610-IZ46RMUKJAHY9K3G8K4Z/034_HARTWICK_HANDWOVEN_TRIBECA_SKIRT_SILK_AMMAN_SHIRT_LINEN_SILK.jpg" alt="Tribeca Skirt" />
-                </div>
-                <div class="nav-megamenu__spotlight-info">
-                  <strong>Tribeca Skirt — Emerald Matka Silk</strong>
-                  <span>Handspun Mulberry Silk · Natural Dye</span>
-                  <span class="nav-megamenu__action-arrow">Inspect Garment →</span>
-                </div>
-              </div>
-            </div>
+        <div class="nav-megamenu nav-megamenu--apparel">
+          <div class="nav-megamenu__col">
+            <span class="nav-megamenu__eyebrow">Apparel</span>
+            <button class="nav-megamenu__link nav-megamenu__link--featured" onclick="navigateTo('collection', 'all-apparel')">All Apparel</button>
+            <button class="nav-megamenu__link" onclick="navigateTo('collection', 'skirts-dresses')">Skirts &amp; Dresses</button>
+            <button class="nav-megamenu__link" onclick="navigateTo('collection', 'shirts-blouses')">Shirts &amp; Blouses</button>
+            <button class="nav-megamenu__link" onclick="navigateTo('collection', 'trousers')">Trousers</button>
+            <button class="nav-megamenu__link" onclick="navigateTo('collection', 'coats-accessories')">Coats &amp; Robes</button>
+            <button class="nav-megamenu__link" onclick="navigateTo('collection', 'lounge')">Lounge</button>
           </div>
         </div>
       </div>
@@ -596,8 +590,12 @@ function renderHeaderAndFooterNav() {
         </div>
       </div>
 
+      <button class="header-action-btn header-search-trigger" onclick="openSearchInCollection()" title="Search Collection">
+        <span>Search</span>
+      </button>
+
       <button class="header-action-btn" onclick="openPrivateAppointmentModal()" title="Private Client Appointments">
-        <span>The Circle</span>
+        <span>Private Appointments</span>
       </button>
 
       <button class="header-action-btn" onclick="openCartDrawer()">
@@ -763,12 +761,79 @@ function renderHomepage() {
     }
   ];
 
-  const botanicalSwatches = [
-    { name: "Wild Indigo", tag: "VAT-IND-04", origin: "Kutch Living Fermentation", img: "assets/blots/dot_indigo_moss.png" },
-    { name: "Marigold & Iron", tag: "VAT-MRG-01", origin: "Rajasthan Guild", img: "assets/blots/dot_iron_rust.png" },
-    { name: "Goldenrod & Alum", tag: "VAT-GLD-02", origin: "Bengal Silk Looms", img: "assets/blots/dot_goldenrod.png" },
-    { name: "Black Walnut Hull", tag: "VAT-WLN-03", origin: "Northern Pit Looms", img: "assets/blots/dot_walnut.png" },
-    { name: "Madder & Pokeberry", tag: "VAT-PKB-05", origin: "Bagru Master Printers", img: "assets/blots/dot_apricot.png" }
+    const brandPalette = [
+    {
+      id: "soot",
+      name: "Soot",
+      rgb: "40 / 41 / 36",
+      hex: "#282924",
+      tag: "PIG-SOOT-01",
+      fibre: "Carbon soot on wild tussar silk",
+      img: "assets/palette/soot.png"
+    },
+    {
+      id: "inkstone",
+      name: "Inkstone",
+      rgb: "45 / 46 / 56",
+      hex: "#2D2E38",
+      tag: "PIG-INK-02",
+      fibre: "Indigo vat & oxidized river slate",
+      img: "assets/palette/inkstone.png"
+    },
+    {
+      id: "moss",
+      name: "Moss",
+      rgb: "93 / 98 / 64",
+      hex: "#5D6240",
+      tag: "PIG-MOSS-03",
+      fibre: "Goldenrod & myrobalan leaf fermentation",
+      img: "assets/palette/moss.png"
+    },
+    {
+      id: "mordant-amber",
+      name: "Mordant Amber",
+      rgb: "213 / 168 / 64",
+      hex: "#D5A840",
+      tag: "PIG-AMB-04",
+      fibre: "Alum mordanted marigold & pomegranate",
+      img: "assets/palette/mordant_amber.png"
+    },
+    {
+      id: "deep-wine",
+      name: "Deep Wine",
+      rgb: "88 / 47 / 55",
+      hex: "#582F37",
+      tag: "PIG-WINE-05",
+      fibre: "Madder root (Rubia cordifolia) slow simmer",
+      img: "assets/palette/deep_wine.png"
+    },
+    {
+      id: "peat-fibre",
+      name: "Peat Fibre",
+      rgb: "59 / 46 / 37",
+      hex: "#3B2E25",
+      tag: "PIG-PEAT-06",
+      fibre: "Roasted walnut hull & peat tannin",
+      img: "assets/palette/peat_fibre.png"
+    },
+    {
+      id: "bare-clay",
+      name: "Bare Clay",
+      rgb: "222 / 182 / 190",
+      hex: "#DEB6BE",
+      tag: "PIG-CLAY-07",
+      fibre: "Washed iron earth & wild madder blush",
+      img: "assets/palette/bare_clay.png"
+    },
+    {
+      id: "chalk-blue",
+      name: "Chalk Blue",
+      rgb: "235 / 243 / 255",
+      hex: "#EBF3FF",
+      tag: "PIG-CHLK-08",
+      fibre: "First-dip vat indigo on raw unbleached khadi",
+      img: "assets/palette/chalk_blue.png"
+    }
   ];
 
   return `
@@ -781,16 +846,16 @@ function renderHomepage() {
           alt="Hartwick Atelier Limited Edition Collections"
         />
         <div class="hale-hero__overlay">
-          <div class="hale-hero__captions">
-            <span class="hale-hero__caption-left">Limited Edition Collections</span>
-            <span class="hale-hero__caption-right">Handwoven &amp; Naturally Dyed</span>
-          </div>
           <div class="hale-hero__center-title">
             <span class="hale-hero__eyebrow">Autumn / Winter Edition</span>
             <h1 class="hale-hero__title">Woven with Intention</h1>
             <button class="hale-hero__cta" onclick="navigateTo('collection', 'all-apparel')">
               Explore Collection →
             </button>
+          </div>
+          <div class="hale-hero__captions">
+            <span class="hale-hero__caption-left">Intimate Moments:</span>
+            <span class="hale-hero__caption-right">Draped in Tactility</span>
           </div>
         </div>
       </section>
@@ -839,35 +904,24 @@ function renderHomepage() {
         </div>
       </section>
 
-      <!-- 4. TACTILE SWATCH STUDY (Hale Mercantile Swatch Invitation) -->
-      <section class="hale-material-study">
-        <div class="hale-material-study__inner">
-          <div class="hale-material-study__header">
-            <span class="editorial-section-eyebrow" style="color:#FAF8F4">Living Colour &amp; Fibre Archive ──────────</span>
-            <h2 class="hale-material-study__title">An invitation to experience material through touch and tone.</h2>
-            <p class="hale-material-study__copy">
-              Before touching a loom, our yarns are steeped in living fermentation vats of wild plants, roots, and mineral mordants. Select any botanical specimen below to explore its provenance.
-            </p>
-          </div>
-
-          <div class="hale-swatch-row">
-            ${botanicalSwatches.map(sw => `
-              <div class="hale-swatch-card" onclick="navigateTo('the-masters')">
-                <div class="hale-swatch-card__dot-wrap">
-                  <img src="${sw.img}" alt="${sw.name}" class="hale-swatch-dot" />
-                </div>
-                <span class="hale-swatch-tag">${sw.tag}</span>
-                <strong class="hale-swatch-name">${sw.name}</strong>
-                <span class="hale-swatch-origin">${sw.origin}</span>
-              </div>
-            `).join("")}
-          </div>
-
-          <div class="hale-material-study__actions">
-            <button class="editorial-outline-btn" onclick="navigateTo('the-masters')" style="color:#FAF8F4">
-              Explore The Masters &amp; Botanical Dye Archive →
-            </button>
-          </div>
+      <!-- 4. LARGE TACTILE TEXTILE ILLUSTRATION BANNER (Quiet Luxury / Hale Mercantile Aesthetic) -->
+      <section class="hale-textile-banner">
+        <div class="hale-textile-banner__media">
+          <img 
+            src="assets/editorial/warm_khadi_weave.jpg" 
+            alt="Hartwick Atelier — Handspun & Handwoven Natural Cloth" 
+            class="hale-textile-banner__img"
+            loading="lazy"
+          />
+          <div class="hale-textile-banner__scrim"></div>
+        </div>
+        <div class="hale-textile-banner__inner">
+          <p class="hale-textile-banner__copy">
+            An invitation to experience material through touch and tone. Handwoven in numbered lots to explore pigment, depth and the quiet art of natural cloth.
+          </p>
+          <button class="hale-textile-banner__cta" onclick="navigateTo('collection', 'all-apparel')">
+            ( EXPLORE TEXTILES &amp; SILHOUETTES )
+          </button>
         </div>
       </section>
 
@@ -940,11 +994,24 @@ function renderCollectionPage() {
     filtered = pool.filter(p => p.category === STATE.currentCollection);
   }
 
-  // Phase 2 (§8.8): Advanced Filtering by Fabric / Technique
-  if (STATE.phase2Enabled && STATE.techniqueFilter !== "ALL") {
-    filtered = filtered.filter(p =>
-      (p.fabric_technique + " " + p.commercial_expression).toLowerCase().includes(STATE.techniqueFilter.toLowerCase())
-    );
+  // Live High-End Search Filter
+  const activeQuery = (STATE.collectionSearchQuery || "").trim();
+  if (activeQuery !== "") {
+    const q = activeQuery.toLowerCase();
+    // If searching, search across the entire active pool if current category yields 0, or within current view
+    filtered = pool.filter(p => {
+      const searchable = [
+        p.title,
+        p.subtitle,
+        p.commercial_expression,
+        p.fabric_technique,
+        p.short_description,
+        p.fibre,
+        p.lot,
+        p.category
+      ].filter(Boolean).join(" ").toLowerCase();
+      return searchable.includes(q);
+    });
   }
 
   const apparelTabs = [
@@ -952,16 +1019,18 @@ function renderCollectionPage() {
     { id: "skirts-dresses", label: "Skirts & Dresses" },
     { id: "shirts-blouses", label: "Shirts & Blouses" },
     { id: "trousers", label: "Trousers" },
-    { id: "coats-accessories", label: "Coats & Accessories" },
+    { id: "coats-accessories", label: "Coats & Robes" },
     { id: "lounge", label: "Lounge" },
     { id: "fine-silk", label: "Fine Silk" },
     { id: "fine-jewellery", label: "Fine Jewellery" }
   ];
 
+  const safeQuery = activeQuery.replace(/"/g, "&quot;");
+
   return `
     <div class="collection-view view-enter editorial-collection-view">
       <div class="collection-view__container">
-        <!-- EDITORIAL COLLECTION HEADER (Atelier / Thread & Balconte Gallery Style) -->
+        <!-- QUIET LUXURY COLLECTION HEADER (Clean, No Color Blot Strip) -->
         <header class="editorial-collection-header reveal-on-scroll">
           <div class="editorial-collection-header__left">
             <span class="editorial-section-eyebrow">The Collection ──────────</span>
@@ -969,76 +1038,90 @@ function renderCollectionPage() {
             <p class="editorial-collection-header__desc">${meta.description}</p>
           </div>
 
-          <!-- ARTISTIC BOTANICAL VAT INDEX STRIP -->
-          <div class="collection-botanical-index">
-            <span class="collection-botanical-index__title">Natural Dye Palette</span>
-            <div class="collection-botanical-index__items">
-              <span class="botanical-index-chip" title="Wild Indigo & Pomegranate"><img src="assets/blots/dot_indigo_moss.png" alt="" /> Indigo</span>
-              <span class="botanical-index-chip" title="Marigold & Fermented Iron"><img src="assets/blots/dot_iron_rust.png" alt="" /> Marigold</span>
-              <span class="botanical-index-chip" title="Black Walnut Hull"><img src="assets/blots/dot_walnut.png" alt="" /> Walnut</span>
-              <span class="botanical-index-chip" title="Goldenrod & Alum"><img src="assets/blots/dot_goldenrod.png" alt="" /> Goldenrod</span>
+          <!-- HIGH-END ATELIER SEARCH FIELD -->
+          <div class="editorial-collection-search-box">
+            <div class="editorial-search-field">
+              <svg class="editorial-search-field__icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input
+                type="text"
+                id="editorial-collection-search-input"
+                class="editorial-search-field__input"
+                placeholder="Search silhouettes, fabrics, lots..."
+                value="${safeQuery}"
+                oninput="handleCollectionSearch(this.value)"
+                autocomplete="off"
+                spellcheck="false"
+                aria-label="Search Collection"
+              />
+              ${activeQuery ? `
+                <button type="button" class="editorial-search-field__clear" onclick="clearCollectionSearch()" title="Clear search" aria-label="Clear search">✕</button>
+              ` : ""}
+            </div>
+            <div class="editorial-search-field__meta">
+              <span>${filtered.length} ${filtered.length === 1 ? "Piece" : "Pieces"} Available</span>
+              ${activeQuery ? `<button type="button" class="editorial-search-field__reset" onclick="clearCollectionSearch()">Reset Search</button>` : ""}
             </div>
           </div>
         </header>
 
-        <!-- MINIMALIST TABS -->
+        <!-- HIGH-END CATEGORY FILTER BAR (No Scrollbar / Clean Wrap) -->
         <nav class="editorial-collection-tabs" aria-label="Collection Categories">
           ${apparelTabs.map(tab => `
             <button
-              class="editorial-tab-btn ${STATE.currentCollection === tab.id ? "active" : ""}"
-              onclick="navigateTo('collection', '${tab.id}')"
+              class="editorial-tab-btn ${STATE.currentCollection === tab.id && !activeQuery ? "active" : ""}"
+              onclick="STATE.collectionSearchQuery=''; navigateTo('collection', '${tab.id}')"
             >
               ${tab.label}
             </button>
           `).join("")}
         </nav>
 
-        <!-- BALCONTE EDITORIAL GALLERY GRID -->
-        <div class="product-grid editorial-collection-grid">
-          ${filtered.map((product, idx) => {
-            const isSoldOut = product.status === "Sold Out";
-            const secondaryImg = product.images[1] || product.images[0];
-            const delayClass = `reveal-delay-${(idx % 3) + 1}`;
+        <!-- EDITORIAL GALLERY GRID -->
+        ${filtered.length > 0 ? `
+          <div class="product-grid editorial-collection-grid">
+            ${filtered.map((product, idx) => {
+              const secondaryImg = product.images[1] || product.images[0];
+              const delayClass = `reveal-delay-${(idx % 3) + 1}`;
 
-            // Determine subtle dot color
-            const lowerT = (product.title + " " + product.commercial_expression).toLowerCase();
-            let cDot = "assets/blots/dot_iron_rust.png";
-            if (lowerT.includes("emerald") || lowerT.includes("green")) cDot = "assets/blots/dot_indigo_moss.png";
-            else if (lowerT.includes("indigo") || lowerT.includes("navy")) cDot = "assets/blots/dot_indigo_moss.png";
-            else if (lowerT.includes("pink") || lowerT.includes("rouge")) cDot = "assets/blots/dot_apricot.png";
-            else if (lowerT.includes("walnut") || lowerT.includes("black")) cDot = "assets/blots/dot_walnut.png";
-            else if (lowerT.includes("gold") || lowerT.includes("yellow")) cDot = "assets/blots/dot_goldenrod.png";
-
-            return `
-              <article class="product-card editorial-product-card reveal-on-scroll ${delayClass}" onclick="navigateTo('pdp', '${product.handle}')">
-                <div class="product-card__media">
-                  <img
-                    class="product-card__img product-card__img--primary"
-                    src="${product.images[0]}"
-                    alt="${product.title}"
-                    loading="lazy"
-                  />
-                  <img
-                    class="product-card__img product-card__img--secondary"
-                    src="${secondaryImg}"
-                    alt="${product.title} alternate view"
-                    loading="lazy"
-                  />
-                </div>
-                <div class="editorial-card-info">
-                  <div class="editorial-card-top-row">
-                    <h2 class="editorial-card-title">${product.title}</h2>
-                    <span class="editorial-card-price">${formatPrice(product)}</span>
+              return `
+                <article class="product-card editorial-product-card reveal-on-scroll ${delayClass}" onclick="navigateTo('pdp', '${product.handle}')">
+                  <div class="product-card__media">
+                    <img
+                      class="product-card__img product-card__img--primary"
+                      src="${product.images[0]}"
+                      alt="${product.title}"
+                      loading="lazy"
+                    />
+                    <img
+                      class="product-card__img product-card__img--secondary"
+                      src="${secondaryImg}"
+                      alt="${product.title} alternate view"
+                      loading="lazy"
+                    />
                   </div>
-                  <div class="editorial-card-sub-row">
-                    <img src="${cDot}" alt="" class="editorial-card-dot" />
-                    <span class="editorial-card-expression">${product.commercial_expression} ──────</span>
+                  <div class="editorial-card-info">
+                    <div class="editorial-card-top-row">
+                      <h2 class="editorial-card-title">${product.title}</h2>
+                      <span class="editorial-card-price">${formatPrice(product)}</span>
+                    </div>
+                    <div class="editorial-card-sub-row">
+                      <span class="editorial-card-expression">${product.commercial_expression}</span>
+                    </div>
                   </div>
-                </div>
-              </article>
-            `;
-          }).join("")}
-        </div>
+                </article>
+              `;
+            }).join("")}
+          </div>
+        ` : `
+          <div class="editorial-empty-search">
+            <p class="editorial-empty-search__title">No silhouettes found matching “${safeQuery}”.</p>
+            <p class="editorial-empty-search__sub">Try searching for Khadi, Matka Silk, Linen, Skirt, Shirt, or Lot 0325.</p>
+            <button type="button" class="editorial-outline-btn" onclick="clearCollectionSearch()">View All Apparel</button>
+          </div>
+        `}
       </div>
     </div>
   `;
@@ -3094,6 +3177,7 @@ function closeDispatchPopup() {
 // MAIN RENDERER
 // ==========================================================================
 function renderApp() {
+  document.body.classList.toggle("view-home", STATE.currentView === "home");
   const main = document.getElementById("app-main");
   if (!main) return;
 
