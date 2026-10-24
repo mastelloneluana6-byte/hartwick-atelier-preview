@@ -541,22 +541,6 @@ function renderHeaderAndFooterNav() {
         </div>
       </div>
 
-      <!-- ABOUT Dropdown (Matching Apparel Mega-Menu Typography) -->
-      <div class="nav-item">
-        <button class="nav-link" onclick="navigateTo('our-story')">
-          <span>About</span>
-          <span class="nav-caret">▾</span>
-        </button>
-        <div class="nav-dropdown">
-          <span class="nav-megamenu__eyebrow">The House</span>
-          <button class="nav-dropdown__link" onclick="navigateTo('our-story')">Our Story</button>
-          <button class="nav-dropdown__link" onclick="navigateTo('the-masters')">The Masters &amp; Glossary</button>
-          <button class="nav-dropdown__link" onclick="openPrivateAppointmentModal()">Private Appointments</button>
-          <button class="nav-dropdown__link" onclick="navigateTo('contact')">Contact</button>
-          <button class="nav-dropdown__link" onclick="navigateTo('returns-policy')">Returns Policy</button>
-        </div>
-      </div>
-
       <!-- FINE SILK -->
       <div class="nav-item">
         <button class="nav-link" onclick="navigateTo('collection', 'fine-silk')">
@@ -583,6 +567,22 @@ function renderHeaderAndFooterNav() {
   if (actions) {
     const totalQty = STATE.cart.reduce((sum, i) => sum + i.qty, 0);
     actions.innerHTML = `
+      <!-- ABOUT Dropdown (Moved to Right of Logo per CD Design Feedback) -->
+      <div class="nav-item header-about-nav-item">
+        <button class="nav-link header-action-btn" onclick="navigateTo('our-story')">
+          <span>About</span>
+          <span class="nav-caret">▾</span>
+        </button>
+        <div class="nav-dropdown nav-dropdown--right">
+          <span class="nav-megamenu__eyebrow">The House</span>
+          <button class="nav-dropdown__link" onclick="navigateTo('our-story')">Our Story</button>
+          <button class="nav-dropdown__link" onclick="navigateTo('the-masters')">The Masters &amp; Glossary</button>
+          <button class="nav-dropdown__link" onclick="openPrivateAppointmentModal()">Private Appointments</button>
+          <button class="nav-dropdown__link" onclick="navigateTo('contact')">Contact</button>
+          <button class="nav-dropdown__link" onclick="navigateTo('returns-policy')">Returns Policy</button>
+        </div>
+      </div>
+
       <button class="header-action-btn" onclick="openPrivateAppointmentModal()" title="Book a Private Appointment">
         <span>Private Appointments</span>
       </button>
@@ -1270,21 +1270,33 @@ function renderCollectionPage() {
   ];
 
   return `
-    <div class="collection-view view-enter">
+    <div class="collection-view view-enter editorial-collection-view">
       <div class="collection-view__container">
-        <header class="collection-header reveal-on-scroll">
-          <div class="collection-header__wash-wrap" aria-hidden="true">
-            <img src="assets/blots/swatch_marigold.png" alt="" class="collection-header__wash" />
+        <!-- EDITORIAL COLLECTION HEADER (Atelier / Thread & Balconte Gallery Style) -->
+        <header class="editorial-collection-header reveal-on-scroll">
+          <div class="editorial-collection-header__left">
+            <span class="editorial-section-eyebrow">The Collection ──────────</span>
+            <h1 class="editorial-collection-header__title">${meta.title}.</h1>
+            <p class="editorial-collection-header__desc">${meta.description}</p>
           </div>
-          <span class="section-eyebrow" style="color:#582527">Hartwick Atelier Collection</span>
-          <h1 class="collection-header__title">${meta.title}</h1>
-          <p class="collection-header__desc">${meta.description}</p>
+
+          <!-- ARTISTIC BOTANICAL VAT INDEX STRIP -->
+          <div class="collection-botanical-index">
+            <span class="collection-botanical-index__title">Natural Dye Palette</span>
+            <div class="collection-botanical-index__items">
+              <span class="botanical-index-chip" title="Wild Indigo & Pomegranate"><img src="assets/blots/dot_indigo_moss.png" alt="" /> Indigo</span>
+              <span class="botanical-index-chip" title="Marigold & Fermented Iron"><img src="assets/blots/dot_iron_rust.png" alt="" /> Marigold</span>
+              <span class="botanical-index-chip" title="Black Walnut Hull"><img src="assets/blots/dot_walnut.png" alt="" /> Walnut</span>
+              <span class="botanical-index-chip" title="Goldenrod & Alum"><img src="assets/blots/dot_goldenrod.png" alt="" /> Goldenrod</span>
+            </div>
+          </div>
         </header>
 
-        <nav class="collection-tabs" aria-label="Collection Categories">
+        <!-- MINIMALIST TABS -->
+        <nav class="editorial-collection-tabs" aria-label="Collection Categories">
           ${apparelTabs.map(tab => `
             <button
-              class="collection-tab ${STATE.currentCollection === tab.id ? "active" : ""}"
+              class="editorial-tab-btn ${STATE.currentCollection === tab.id ? "active" : ""}"
               onclick="navigateTo('collection', '${tab.id}')"
             >
               ${tab.label}
@@ -1292,14 +1304,24 @@ function renderCollectionPage() {
           `).join("")}
         </nav>
 
-        <div class="product-grid collection-editorial-grid">
+        <!-- BALCONTE EDITORIAL GALLERY GRID -->
+        <div class="product-grid editorial-collection-grid">
           ${filtered.map((product, idx) => {
             const isSoldOut = product.status === "Sold Out";
             const secondaryImg = product.images[1] || product.images[0];
             const delayClass = `reveal-delay-${(idx % 3) + 1}`;
 
+            // Determine subtle dot color
+            const lowerT = (product.title + " " + product.commercial_expression).toLowerCase();
+            let cDot = "assets/blots/dot_iron_rust.png";
+            if (lowerT.includes("emerald") || lowerT.includes("green")) cDot = "assets/blots/dot_indigo_moss.png";
+            else if (lowerT.includes("indigo") || lowerT.includes("navy")) cDot = "assets/blots/dot_indigo_moss.png";
+            else if (lowerT.includes("pink") || lowerT.includes("rouge")) cDot = "assets/blots/dot_apricot.png";
+            else if (lowerT.includes("walnut") || lowerT.includes("black")) cDot = "assets/blots/dot_walnut.png";
+            else if (lowerT.includes("gold") || lowerT.includes("yellow")) cDot = "assets/blots/dot_goldenrod.png";
+
             return `
-              <article class="product-card collection-editorial-card reveal-on-scroll ${delayClass}" onclick="navigateTo('pdp', '${product.handle}')">
+              <article class="product-card editorial-product-card reveal-on-scroll ${delayClass}" onclick="navigateTo('pdp', '${product.handle}')">
                 <div class="product-card__media">
                   <img
                     class="product-card__img product-card__img--primary"
@@ -1314,12 +1336,15 @@ function renderCollectionPage() {
                     loading="lazy"
                   />
                 </div>
-                <div class="product-card__info">
-                  <h2 class="product-card__title">${product.title}</h2>
-                  <p class="product-card__expression">${product.commercial_expression}</p>
-                  <p class="product-card__price">
-                    ${formatPrice(product)}${isSoldOut ? " <span class='collection-card-status'>· Archive Edition</span>" : ""}
-                  </p>
+                <div class="editorial-card-info">
+                  <div class="editorial-card-top-row">
+                    <h2 class="editorial-card-title">${product.title}</h2>
+                    <span class="editorial-card-price">${formatPrice(product)}</span>
+                  </div>
+                  <div class="editorial-card-sub-row">
+                    <img src="${cDot}" alt="" class="editorial-card-dot" />
+                    <span class="editorial-card-expression">${product.commercial_expression} ──────</span>
+                  </div>
                 </div>
               </article>
             `;
@@ -1330,9 +1355,6 @@ function renderCollectionPage() {
   `;
 }
 
-// ==========================================================================
-// VIEW 3: PRODUCT DETAIL PAGE (SECTION 4.1–4.10 & SECTION 7 EXACT ORDER)
-// ==========================================================================
 function openCraftGlossaryModal(key) {
   const entry = CRAFT_GLOSSARY_DATA[key] || CRAFT_GLOSSARY_DATA["khadi"];
   const body = document.getElementById("phase2-modal-body");
@@ -1470,13 +1492,11 @@ function renderProductPage() {
   else if (lowerText.includes("black") || lowerText.includes("walnut")) productBlot = "walnut";
   else if (lowerText.includes("gold") || lowerText.includes("23k") || lowerText.includes("mustard")) productBlot = "goldenrod";
 
-  const styleTitle = (product.subtitle || product.title).toUpperCase();
+  const styleTitle = product.subtitle || product.title;
   const expressionShort = product.title.replace(product.subtitle || "", "").replace(/^[\s—-]+/, "") || product.commercial_expression;
   const lotCode = product.lot ? product.lot.replace("Lot ", "LOT-") : "LOT-0325";
-  const isBotanicalAtelier = STATE.designConcept === "B";
   const blotObj = BOTANICAL_BLOTS[productBlot] || BOTANICAL_BLOTS["marigold"];
 
-  // Expanded Fibre to Garment product data & Glossary loops (Client Action Item 4)
   const ftg = product.fibre_to_garment || {
     product_name: product.title,
     sizing: `${product.sizes.join(", ")} (${product.fit_label})`,
@@ -1500,57 +1520,66 @@ function renderProductPage() {
   };
 
   return `
-    <div class="aloha-pdp view-enter">
-      <!-- 1. THREE-COLUMN ABOVE-THE-FOLD HERO (Pure Quiet Luxury: No dots in buttons, no boxed dots in top hero, no duties text, no appointment button under ATC) -->
+    <div class="aloha-pdp view-enter editorial-elevated">
+      <!-- 1. THREE-COLUMN HERO (High-Fashion Balconte & Aloha Editorial Architecture) -->
       <section class="aloha-pdp__hero-grid">
-        <!-- LEFT COLUMN: Breadcrumb, Title, Subtitle, Narrative, Spec Table, Clean Buttons -->
+        <!-- LEFT COLUMN: Breadcrumb, Sculpted Title, Botanical Specimen Pill, Narrative, Spec Ledger -->
         <div class="aloha-pdp__left">
           <div>
-            <nav class="aloha-pdp__breadcrumb">
+            <nav class="aloha-pdp__breadcrumb editorial-breadcrumb">
               <button onclick="navigateTo('collection', 'all-apparel')">Apparel</button>
               <span>/</span>
               <button onclick="navigateTo('collection', '${product.category}')">${product.category.replace("-", " & ")}</button>
             </nav>
 
-            <h1 class="aloha-pdp__title">${styleTitle}</h1>
-            <p class="aloha-pdp__subtitle">${product.commercial_expression}</p>
+            <h1 class="aloha-pdp__title editorial-title">${styleTitle}</h1>
+            <p class="aloha-pdp__subtitle editorial-subtitle">${product.commercial_expression}</p>
 
-            <!-- Storytelling Paragraphs -->
-            <div class="aloha-pdp__story">
+            <!-- ARTISTIC BOTANICAL PIGMENT PILL (Discrete, High-End Museum Specimen) -->
+            <div class="botanical-hero-pill" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" title="Inspect ${blotObj.name} in The Masters">
+              <img src="${blotObj.img}" alt="${blotObj.name}" class="botanical-hero-pill__dot" />
+              <div class="botanical-hero-pill__meta">
+                <span class="botanical-hero-pill__label">Botanical Vat Specimen · ${blotObj.lotCode}</span>
+                <span class="botanical-hero-pill__name">${blotObj.name} ↗</span>
+              </div>
+            </div>
+
+            <!-- Storytelling Narrative -->
+            <div class="aloha-pdp__story editorial-story">
               <p>${product.long_description}</p>
               <p>${product.short_description}</p>
             </div>
 
-            <!-- 5-Row Interactive Spec Table (Loops directly into The Masters & Glossary) -->
-            <div class="aloha-pdp__spec-list">
-              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')" style="cursor:pointer" title="Click through to Fibre Record in The Masters">
+            <!-- 5-Row Clean Architectural Spec Ledger (Zero Box Buttons) -->
+            <div class="aloha-pdp__spec-list editorial-spec-list">
+              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')" title="Inspect Fibre Record">
                 <span class="aloha-pdp__spec-label">Fibre</span>
-                <span class="aloha-pdp__spec-val">${ftg.fiber} <span style="opacity:0.55;font-size:10px;margin-left:4px">↗</span></span>
+                <span class="aloha-pdp__spec-val">${ftg.fiber} <span class="spec-arrow">↗</span></span>
               </div>
-              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.spinning_id}')" style="cursor:pointer" title="Click through to Spinning Record in The Masters">
+              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.spinning_id}')" title="Inspect Spinning Record">
                 <span class="aloha-pdp__spec-label">Spinning</span>
-                <span class="aloha-pdp__spec-val">Charkha Handspun (0 kWh) <span style="opacity:0.55;font-size:10px;margin-left:4px">↗</span></span>
+                <span class="aloha-pdp__spec-val">Charkha Handspun (0 kWh) <span class="spec-arrow">↗</span></span>
               </div>
-              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.weaving_id}')" style="cursor:pointer" title="Click through to Weave Record in The Masters">
-                <span class="aloha-pdp__spec-label">Weave</span>
-                <span class="aloha-pdp__spec-val">${ftg.weaving} <span style="opacity:0.55;font-size:10px;margin-left:4px">↗</span></span>
+              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.weaving_id}')" title="Inspect Weave Record">
+                <span class="aloha-pdp__spec-label">Weaving</span>
+                <span class="aloha-pdp__spec-val">${ftg.weaving} <span class="spec-arrow">↗</span></span>
               </div>
-              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" style="cursor:pointer" title="Click through to Natural Dye Record in The Masters">
-                <span class="aloha-pdp__spec-label">Colour</span>
-                <span class="aloha-pdp__spec-val">${expressionShort} <span style="opacity:0.55;font-size:10px;margin-left:4px">↗</span></span>
+              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" title="Inspect Natural Dye Record">
+                <span class="aloha-pdp__spec-label">Dyeing &amp; Printing</span>
+                <span class="aloha-pdp__spec-val">${expressionShort} <span class="spec-arrow">↗</span></span>
               </div>
-              <div class="aloha-pdp__spec-row" onclick="scrollToElementById('pdp-fibre-to-garment')" style="cursor:pointer" title="Scroll to From Fibre to Garment">
-                <span class="aloha-pdp__spec-label">Origin</span>
-                <span class="aloha-pdp__spec-val">${product.origin} <span style="opacity:0.55;font-size:10px;margin-left:4px">↓</span></span>
+              <div class="aloha-pdp__spec-row" onclick="scrollToElementById('pdp-fibre-to-garment')" title="Scroll to From Fibre to Garment">
+                <span class="aloha-pdp__spec-label">Finishing</span>
+                <span class="aloha-pdp__spec-val">Single-Tailor Heirloom Fit <span class="spec-arrow">↓</span></span>
               </div>
             </div>
 
-            <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px">
-              <button type="button" class="btn-outline" style="width:100%;justify-content:space-between" onclick="scrollToElementById('pdp-fibre-to-garment')">
+            <div class="hero-editorial-links">
+              <button type="button" class="editorial-text-link" onclick="scrollToElementById('pdp-fibre-to-garment')">
                 <span>Explore Fibre to Garment</span>
                 <span>↓</span>
               </button>
-              <button type="button" class="btn-primary" style="width:100%;justify-content:space-between" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')">
+              <button type="button" class="editorial-text-link" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')">
                 <span>Open Master &amp; Textile Glossary</span>
                 <span>⟶</span>
               </button>
@@ -1558,12 +1587,12 @@ function renderProductPage() {
           </div>
         </div>
 
-        <!-- CENTER COLUMN: Pure Unobstructed Portrait Image + Thumbnail Switcher -->
+        <!-- CENTER COLUMN: Pure Dominant Portrait Image + Calm Thumbnail Dots -->
         <div class="aloha-pdp__center">
-          <div class="aloha-pdp__main-media">
+          <div class="aloha-pdp__main-media editorial-main-media">
             <img src="${activeImage}" alt="${product.title}" />
           </div>
-          <div class="aloha-pdp__thumbs">
+          <div class="aloha-pdp__thumbs editorial-thumbs">
             ${product.images.map((img, idx) => `
               <button
                 type="button"
@@ -1577,17 +1606,18 @@ function renderProductPage() {
           </div>
         </div>
 
-        <!-- RIGHT COLUMN: Price (No Duties text), Size XS–XL, Clean Add to Bag CTA (No appointment button below), Accordions -->
+        <!-- RIGHT COLUMN: Price, Sizes XS–XL, Clean Add to Bag, Accordions, Minimalist Register Notice -->
         <div class="aloha-pdp__right">
-          <div class="aloha-pdp__price-block" style="padding-bottom:18px;border-bottom:1px solid var(--border-subtle)">
+          <div class="aloha-pdp__price-block editorial-price-block">
             <span class="aloha-pdp__price">${formatPrice(product)} ${STATE.currency}</span>
+            <span class="editorial-lot-badge">Numbered Atelier Edition · ${lotCode}</span>
           </div>
 
           <!-- Size Selector XS - XL -->
-          <div class="aloha-pdp__size-block">
+          <div class="aloha-pdp__size-block editorial-size-block">
             <div class="aloha-pdp__size-top">
-              <span class="aloha-pdp__field-label" style="margin-bottom:0">Size &nbsp;·&nbsp; <strong style="color:var(--text-primary)">${STATE.selectedSize}</strong></span>
-              <button class="size-guide-trigger" onclick="navigateTo('size-guide')">Size Guide</button>
+              <span class="aloha-pdp__field-label">Size &nbsp;·&nbsp; <strong>${STATE.selectedSize}</strong></span>
+              <button class="size-guide-trigger" onclick="navigateTo('size-guide')">Size Guide (XS–XL)</button>
             </div>
             <div class="aloha-pdp__size-grid">
               ${product.sizes.map(size => `
@@ -1602,18 +1632,18 @@ function renderProductPage() {
             </div>
           </div>
 
-          <!-- Primary CTA Button (Ultra-clean, no button below it) -->
+          <!-- Primary CTA Button -->
           <button
             type="button"
-            class="aloha-pdp__atc-btn"
+            class="aloha-pdp__atc-btn editorial-atc-btn"
             ${isSoldOut ? "disabled" : ""}
             onclick="addToCart('${product.handle}')"
           >
             ${isSoldOut ? "Archive Edition" : `Add Size ${STATE.selectedSize} to Bag — ${formatPrice(product)}`}
           </button>
 
-          <!-- Right-column Accordions: How It Fits & Delivery & Returns -->
-          <div class="pdp-accordions" style="border-top:none;margin-top:16px;margin-bottom:0">
+          <!-- Accordions: How It Fits & Delivery & Returns -->
+          <div class="pdp-accordions editorial-accordions">
             <div class="accordion-item" id="acc-fit-right">
               <button class="accordion-trigger" onclick="toggleAccordion('acc-fit-right')">
                 <span>How It Fits</span>
@@ -1632,363 +1662,223 @@ function renderProductPage() {
                 <span class="accordion-icon">+</span>
               </button>
               <div class="accordion-content">
-                <p>Dispatched via insured DHL Express across the EU, UK, and international destinations. Complimentary shipping on orders over €500. Returns accepted within 14 days of delivery.</p>
+                <p>Dispatched via insured DHL Express across the EU, UK, and worldwide destinations. Complimentary shipping on orders over €500. Returns accepted within 14 days of delivery.</p>
               </div>
             </div>
           </div>
 
-          <!-- SMART EARLY-SCROLL CONVERSION TOUCHPOINT: Private Lot Release Notice in Hero Right Column -->
-          <div class="pdp-inline-register-card">
-            <span class="pdp-inline-register-card__eyebrow">The Register · Lot Release Notice</span>
-            <p class="pdp-inline-register-card__text">
-              Woven in limited numbered lots. Leave your address for private notice when new loom editions are released.
+          <!-- Refined Minimalist Register Whisper (No Heavy Box) -->
+          <div class="editorial-register-whisper">
+            <span class="editorial-register-whisper__label">The Register · Loom Release Notice</span>
+            <p class="editorial-register-whisper__text">
+              Woven in limited small batches. Enter your email for private notice when future editions leave the loom.
             </p>
-            <form class="pdp-inline-register-card__form" onsubmit="handleNewsletterSubmit(event, 'pdp-hero-register-msg')">
+            <form class="editorial-register-whisper__form" onsubmit="handleNewsletterSubmit(event, 'pdp-hero-register-msg')">
               <input
                 type="email"
-                class="pdp-inline-register-card__input"
-                placeholder="Your email address"
+                class="editorial-register-whisper__input"
+                placeholder="your@email.com"
                 required
                 aria-label="Email address for lot release notice"
               />
-              <button type="submit" class="pdp-inline-register-card__btn">Join →</button>
+              <button type="submit" class="editorial-register-whisper__btn">Join →</button>
             </form>
-            <div id="pdp-hero-register-msg" class="dispatch-feedback" style="margin-top:8px;font-size:12px"></div>
+            <div id="pdp-hero-register-msg" class="dispatch-feedback"></div>
           </div>
         </div>
       </section>
 
-      <!-- 2. FULL-BLEED MASTER'S TOOL BANNER -->
-      <section class="masters-tool-banner">
+      <!-- 2. FULL-BLEED MASTER\'S TOOL BANNER (Inspired by Atelier / Thread Hero) -->
+      <section class="masters-tool-banner editorial-masters-banner">
         <img
           class="masters-tool-banner__img"
           src="${SQS_CDN}3a6786b9-45ce-459e-83cb-4bee1d2e3554/184_HARTWICK_STYLE_FABRIC4R1A8940.jpg"
-          alt="The Master's Tool — The Charkha"
+          alt="The Master\'s Tool — The Charkha"
         />
-        <div class="masters-tool-banner__overlay">
+        <div class="masters-tool-banner__overlay editorial-tool-overlay">
           <div>
-            <h2 class="masters-tool-banner__title">HAND SPUN<br/>FROM FIBRE TO YARN</h2>
-            <p class="masters-tool-banner__copy">
+            <span class="editorial-section-eyebrow" style="color:#FAF8F4">The Master\'s Tool ──────────</span>
+            <h2 class="editorial-tool-title">Woven with intention.</h2>
+            <p class="editorial-tool-copy">
               Before a single thread is placed on the loom, raw natural fibre is drawn out and twisted by hand on the charkha spinning wheel—creating a living yarn that breathes with human rhythm.
             </p>
           </div>
-          <button class="masters-tool-banner__cta" onclick="navigateToMastersTechnique('02')">
-            Visit The Masters ⟶
+          <button class="editorial-outline-btn" onclick="navigateToMastersTechnique('02')">
+            Explore The Masters →
           </button>
         </div>
       </section>
 
-      <!-- 3. ORIGIN + PROCESS — HORIZONTAL 5-COLUMN "FROM FIBRE TO GARMENT" WITH ALTERNATING BOTANICAL DOTS & 3D HOVER DEPTH -->
-      <section class="ftg-horizontal-section" id="pdp-fibre-to-garment">
-        <div class="ftg-horizontal-header">
+      <!-- 3. ORIGIN & PROCESS — 5-COLUMN EDITORIAL GALLERY (Inspired by Atelier / Thread + Artistic Botanical Specimen Dots) -->
+      <section class="ftg-thread-section" id="pdp-fibre-to-garment">
+        <div class="ftg-thread-header">
           <div>
-            <h2 class="ftg-artistic-title">FROM FIBRE TO GARMENT</h2>
-            <p class="ftg-artistic-lead">
-              Hover over any stage below to inspect the five foundational steps of <em>${ftg.product_name}</em>—and click any column to open its corresponding Master Dossier.
-            </p>
+            <span class="editorial-section-eyebrow">Origin &amp; Process ──────────</span>
+            <h2 class="editorial-large-title">From Fibre to Garment.</h2>
           </div>
-          <button type="button" class="btn-outline" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')">
-            Open Full Master Glossary ⟶
-          </button>
-        </div>
-
-        <!-- 5-COLUMN HORIZONTAL ALTERNATING PROCESS TRACK WITH 3D DEPTH HOVER:
-             THE TRUE 5 CHRONOLOGICAL STEPS FROM FIBRE TO GARMENT:
-             01 Fibre -> 02 Spinning -> 03 Weaving -> 04 Botanical Dyeing -> 05 Garment Construction -->
-        <div class="ftg-3d-track" onmouseleave="resetAllFtgCols(this)">
-
-          <!-- STEP 01: FIBRE (Top — Medium-Large 54px Dot + Tiny 20px Satellite Droplet, Left-Shifted) -->
-          <article class="ftg-3d-col ftg-3d-col--top-dot ftg-3d-col--v1" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')" title="Click to inspect ${ftg.glossary_loops.fibre_label} in The Masters">
-            <div class="ftg-3d-col__inner">
-              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v1">
-                <div class="ftg-3d-col__dot-orb ftg-dot-orb--md-lg">
-                  <img src="assets/blots/swatch_marigold.png" alt="" class="ftg-3d-col__wash" />
-                  <img src="assets/blots/dot_iron_rust.png" alt="01 Fibre Botanical Dot" class="ftg-3d-col__dot" />
-                  <img src="assets/blots/dot_sand_speckle.png" alt="" class="ftg-3d-col__satellite ftg-satellite--tr" />
-                </div>
-                <span class="ftg-3d-col__stem"></span>
-              </div>
-
-              <div class="ftg-3d-col__card">
-                <div class="ftg-3d-col__meta-top">
-                  <span class="ftg-3d-col__step">01 · FIBRE</span>
-                  <span class="ftg-3d-col__roman">I</span>
-                </div>
-                <h3 class="ftg-3d-col__title">Raw Natural Fibre</h3>
-                <p class="ftg-3d-col__subtitle">${ftg.fiber}</p>
-                <p class="ftg-3d-col__body">
-                  Harvested from indigenous natural fibres cultivated in small lots for organic breathability, subtle slub, and generational longevity.
-                </p>
-                <div class="ftg-3d-col__footer">
-                  <span>Loop #${ftg.glossary_loops.fibre_id} · Fibre</span>
-                  <strong>Inspect ↗</strong>
-                </div>
-              </div>
-            </div>
-          </article>
-
-          <!-- STEP 02: SPINNING (Bottom — Petite 36px Jewel Specimen Dot, Right-Shifted) -->
-          <article class="ftg-3d-col ftg-3d-col--bottom-dot ftg-3d-col--v2" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.spinning_id}')" title="Click to inspect ${ftg.glossary_loops.spinning_label} in The Masters">
-            <div class="ftg-3d-col__inner">
-              <div class="ftg-3d-col__card">
-                <div class="ftg-3d-col__meta-top">
-                  <span class="ftg-3d-col__step">02 · SPINNING</span>
-                  <span class="ftg-3d-col__roman">II</span>
-                </div>
-                <h3 class="ftg-3d-col__title">Charkha Spun</h3>
-                <p class="ftg-3d-col__subtitle">100% Hand-Turned · 0 kWh</p>
-                <p class="ftg-3d-col__body">
-                  ${ftg.spinning}. Low-tension hand-spinning preserves microscopic air pockets so the yarn breathes naturally.
-                </p>
-                <div class="ftg-3d-col__footer">
-                  <span>Loop #${ftg.glossary_loops.spinning_id} · Spinning</span>
-                  <strong>Inspect ↗</strong>
-                </div>
-              </div>
-
-              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v2">
-                <span class="ftg-3d-col__stem ftg-stem--short"></span>
-                <div class="ftg-3d-col__dot-orb ftg-dot-orb--sm">
-                  <img src="assets/blots/dot_sand_speckle.png" alt="" class="ftg-3d-col__wash" />
-                  <img src="assets/blots/dot_goldenrod.png" alt="02 Spinning Botanical Dot" class="ftg-3d-col__dot" />
-                </div>
-              </div>
-            </div>
-          </article>
-
-          <!-- STEP 03: WEAVING (Top — Sculptural 64px Atelier Seal Overlapping Card Edge) -->
-          <article class="ftg-3d-col ftg-3d-col--top-dot ftg-3d-col--v3" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.weaving_id}')" title="Click to inspect ${ftg.glossary_loops.weaving_label} in The Masters">
-            <div class="ftg-3d-col__inner">
-              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v3">
-                <div class="ftg-3d-col__dot-orb ftg-dot-orb--xl">
-                  <img src="assets/blots/swatch_walnut.png" alt="" class="ftg-3d-col__wash" />
-                  <img src="assets/blots/dot_walnut.png" alt="03 Weaving Botanical Dot" class="ftg-3d-col__dot" />
-                  <img src="assets/blots/dot_goldenrod.png" alt="" class="ftg-3d-col__satellite ftg-satellite--bl" />
-                </div>
-              </div>
-
-              <div class="ftg-3d-col__card">
-                <div class="ftg-3d-col__meta-top">
-                  <span class="ftg-3d-col__step">03 · WEAVING</span>
-                  <span class="ftg-3d-col__roman">III</span>
-                </div>
-                <h3 class="ftg-3d-col__title">Pit Loom Woven</h3>
-                <p class="ftg-3d-col__subtitle">${ftg.weaving}</p>
-                <p class="ftg-3d-col__body">
-                  Interlaced throw by throw on wooden pit looms without electricity (3–5m per day), uniting warp and weft with a true woven selvedge.
-                </p>
-                <div class="ftg-3d-col__footer">
-                  <span>Loop #${ftg.glossary_loops.weaving_id} · Weaving</span>
-                  <strong>Inspect ↗</strong>
-                </div>
-              </div>
-            </div>
-          </article>
-
-          <!-- STEP 04: BOTANICAL DYEING (Bottom — Expressive 58px Dye Vat Dot + 24px Mordant Droplet, Left-Shifted) -->
-          <article class="ftg-3d-col ftg-3d-col--bottom-dot ftg-3d-col--v4" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" title="Click to inspect ${ftg.glossary_loops.dyeing_label} in The Masters">
-            <div class="ftg-3d-col__inner">
-              <div class="ftg-3d-col__card">
-                <div class="ftg-3d-col__meta-top">
-                  <span class="ftg-3d-col__step">04 · DYEING</span>
-                  <span class="ftg-3d-col__roman">IV</span>
-                </div>
-                <h3 class="ftg-3d-col__title">Botanical Dye Vat</h3>
-                <p class="ftg-3d-col__subtitle">${blotObj.name}</p>
-                <p class="ftg-3d-col__body">
-                  Steeped in living fermentation vats of indigenous roots, flowers, and mineral mordants (${blotObj.lotCode}) and cured in open sun and air.
-                </p>
-                <div class="ftg-3d-col__footer">
-                  <span>Loop #${ftg.glossary_loops.dyeing_id} · Dyeing</span>
-                  <strong>Inspect ↗</strong>
-                </div>
-              </div>
-
-              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v4">
-                <span class="ftg-3d-col__stem"></span>
-                <div class="ftg-3d-col__dot-orb ftg-dot-orb--lg">
-                  <img src="${blotObj.swatch}" alt="" class="ftg-3d-col__wash" />
-                  <img src="${blotObj.img}" alt="04 Botanical Dyeing Dot" class="ftg-3d-col__dot" />
-                  <img src="assets/blots/dot_apricot.png" alt="" class="ftg-3d-col__satellite ftg-satellite--br" />
-                </div>
-              </div>
-            </div>
-          </article>
-
-          <!-- STEP 05: GARMENT CONSTRUCTION (Top — Refined 42px Tailoring Dot, Right-Shifted) -->
-          <article class="ftg-3d-col ftg-3d-col--top-dot ftg-3d-col--v5" onmouseenter="setFtgActiveCol(this)" onmouseleave="clearFtgActiveCol(this)" onclick="navigateToMastersTechnique('${ftg.glossary_loops.construction_id}')" title="Click to inspect ${ftg.glossary_loops.construction_label} in The Masters">
-            <div class="ftg-3d-col__inner">
-              <div class="ftg-3d-col__dot-zone ftg-dot-zone--v5">
-                <div class="ftg-3d-col__dot-orb ftg-dot-orb--md-sm">
-                  <img src="assets/blots/swatch_pokeberry.png" alt="" class="ftg-3d-col__wash" />
-                  <img src="assets/blots/dot_apricot.png" alt="05 Garment Construction Dot" class="ftg-3d-col__dot" />
-                </div>
-                <span class="ftg-3d-col__stem ftg-stem--short"></span>
-              </div>
-
-              <div class="ftg-3d-col__card">
-                <div class="ftg-3d-col__meta-top">
-                  <span class="ftg-3d-col__step">05 · CONSTRUCTION</span>
-                  <span class="ftg-3d-col__roman">V</span>
-                </div>
-                <h3 class="ftg-3d-col__title">Single-Tailor Craft</h3>
-                <p class="ftg-3d-col__subtitle">Sizes ${product.sizes.join(" · ")}</p>
-                <p class="ftg-3d-col__body">
-                  ${ftg.construction}. Cut and assembled from start to finish by a single master tailor to endure for decades.
-                </p>
-                <div class="ftg-3d-col__footer">
-                  <span>Loop #${ftg.glossary_loops.construction_id} · Tailoring</span>
-                  <strong>Inspect ↗</strong>
-                </div>
-              </div>
-            </div>
-          </article>
-
-        </div>
-      </section>
-
-      <!-- 4. LOT RECORD — THE PRODUCTION RECORD (DIRECTION 2: SEAMLESS PAGE BACKGROUND WITH ARTISTIC WATERCOLOR WASH & CLEAN 6-STAMP GRID) -->
-      <section class="production-record ${isBotanicalAtelier ? "botanical-certificate-box" : ""}" id="pdp-production-record">
-        ${isBotanicalAtelier ? `
-          <!-- Artistic Watercolor Wash Floating Directly on the Page Background -->
-          <div class="passport-watercolor-backdrop" aria-hidden="true">
-            <img src="${blotObj.swatch}" alt="" class="passport-bg-wash passport-bg-wash--one" />
-            <img src="assets/blots/swatch_marigold.png" alt="" class="passport-bg-wash passport-bg-wash--two" />
-          </div>
-        ` : ""}
-
-        <div class="passport-editorial-col">
-          <span class="fibre-to-garment__eyebrow">${isBotanicalAtelier ? "✦ Official Atelier Provenance Passport" : "Lot & Master Record"}</span>
-          <h2 class="fibre-to-garment__title" style="margin-bottom:18px">${isBotanicalAtelier ? "ARCHIVAL GARMENT PASSPORT" : "THE PRODUCTION RECORD"}</h2>
-          <p class="passport-editorial-lead">
-            ${isBotanicalAtelier
-              ? "Each Hartwick Atelier piece carries a numbered 6-stamp Atelier Provenance Passport documenting its silhouette, dye bath, loom yardage, and guild lineage."
-              : "Every Hartwick Atelier garment is produced in small numbered lots and archived by its textile lineage, dye bath, and workshop origin. Click any record row to inspect the Master & Textile Glossary."}
+          <p class="ftg-thread-lead">
+            The five foundational human disciplines behind <em>${ftg.product_name}</em>. Click any stage to inspect its Master Dossier.
           </p>
-
-          <div class="passport-workbench-actions">
-            <button
-              type="button"
-              class="btn-primary passport-gateway-cta"
-              onclick="navigateToMastersTechnique('01')"
-            >
-              ${isBotanicalAtelier ? "OPEN MASTER DOSSIER WORKBENCH ↗" : "Open Full Master & Textile Glossary ⟶"}
-            </button>
-          </div>
         </div>
 
-        ${isBotanicalAtelier ? `
-          <!-- DIRECTION 2 UX: Clean 2x3 Interactive Provenance Stamp Cards Grid -->
-          <div class="passport-stamp-grid">
-            <div class="passport-stamp-card" onclick="navigateToMastersTechnique('09')" title="Inspect 09 Single-Tailor Construction">
-              <div class="passport-stamp-card__top">
-                <span class="passport-stamp-card__num">STAMP 01 · SILHOUETTE</span>
-                <span class="passport-stamp-card__seal">#${numStr}</span>
-              </div>
-              <div class="passport-stamp-card__val">${product.subtitle || product.title}</div>
-              <div class="passport-stamp-card__footer">
-                <span>Single-Tailor Construction</span>
-                <strong>Loop #09 ↗</strong>
-              </div>
+        <div class="ftg-thread-grid">
+          <!-- 01 FIBRE -->
+          <article class="ftg-thread-col" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')" title="Inspect 01 Fibre">
+            <div class="ftg-thread-dot-bar">
+              <img src="assets/blots/dot_iron_rust.png" alt="01 Fibre Specimen" class="ftg-thread-dot" />
+              <span class="ftg-thread-rule"></span>
+              <span class="ftg-thread-num">01</span>
             </div>
+            <h3 class="ftg-thread-col__title">Fibre</h3>
+            <p class="ftg-thread-col__sub">Raw Natural Fibre ──────</p>
+            <p class="ftg-thread-col__body">
+              ${ftg.fiber}. Cultivated in small lots for organic breathability, natural slub, and heirloom longevity.
+            </p>
+            <span class="ftg-thread-col__link">+ Master Record ↗</span>
+          </article>
 
-            <div class="passport-stamp-card passport-stamp-card--clickable" onclick="navigateToMastersTechnique('06')" title="Open 06 Natural Dye Dossier">
-              <div class="passport-stamp-card__top">
-                <span class="passport-stamp-card__num">STAMP 02 · BOTANICAL DYE VAT</span>
-                <span class="passport-stamp-card__seal">${blotObj.lotCode}</span>
-              </div>
-              <div class="passport-stamp-card__val">${expressionShort} — ${product.commercial_expression}</div>
-              <div class="passport-stamp-card__footer">
-                <span>Inspect Dye Dossier #06</span>
-                <strong>Open Vat ↗</strong>
-              </div>
+          <!-- 02 SPINNING -->
+          <article class="ftg-thread-col" onclick="navigateToMastersTechnique('${ftg.glossary_loops.spinning_id}')" title="Inspect 02 Spinning">
+            <div class="ftg-thread-dot-bar">
+              <img src="assets/blots/dot_goldenrod.png" alt="02 Spinning Specimen" class="ftg-thread-dot" />
+              <span class="ftg-thread-rule"></span>
+              <span class="ftg-thread-num">02</span>
             </div>
+            <h3 class="ftg-thread-col__title">Spinning</h3>
+            <p class="ftg-thread-col__sub">Charkha Handspun ──────</p>
+            <p class="ftg-thread-col__body">
+              ${ftg.spinning}. Low-tension hand spinning preserves micro-air pockets in the core yarn.
+            </p>
+            <span class="ftg-thread-col__link">+ Master Record ↗</span>
+          </article>
 
-            <div class="passport-stamp-card passport-stamp-card--clickable" onclick="navigateToMastersTechnique('03')" title="Open 03 Handwoven Dossier">
-              <div class="passport-stamp-card__top">
-                <span class="passport-stamp-card__num">STAMP 03 · LOOM &amp; FIBRE</span>
-                <span class="passport-stamp-card__seal">0 kWh Loom</span>
-              </div>
-              <div class="passport-stamp-card__val">${product.fibre} · ${product.fabric_technique}</div>
-              <div class="passport-stamp-card__footer">
-                <span>Inspect Loom Dossier #03</span>
-                <strong>Open Loom ↗</strong>
-              </div>
+          <!-- 03 WEAVING -->
+          <article class="ftg-thread-col" onclick="navigateToMastersTechnique('${ftg.glossary_loops.weaving_id}')" title="Inspect 03 Weaving">
+            <div class="ftg-thread-dot-bar">
+              <img src="assets/blots/dot_walnut.png" alt="03 Weaving Specimen" class="ftg-thread-dot" />
+              <span class="ftg-thread-rule"></span>
+              <span class="ftg-thread-num">03</span>
             </div>
+            <h3 class="ftg-thread-col__title">Weaving</h3>
+            <p class="ftg-thread-col__sub">${ftg.weaving} ──────</p>
+            <p class="ftg-thread-col__body">
+              Woven throw by throw on pit looms without electricity (3–5m per day), creating true selvedge cloth.
+            </p>
+            <span class="ftg-thread-col__link">+ Master Record ↗</span>
+          </article>
 
-            <div class="passport-stamp-card" onclick="navigateToMastersTechnique('02')" title="Inspect 02 Hand-Spun Lineage">
-              <div class="passport-stamp-card__top">
-                <span class="passport-stamp-card__num">STAMP 04 · ARCHIVE CATALOG</span>
-                <span class="passport-stamp-card__seal">Verified</span>
-              </div>
-              <div class="passport-stamp-card__val">${product.sku} · Catalog #${numStr}</div>
-              <div class="passport-stamp-card__footer">
-                <span>Numbered Archive Registry</span>
-                <strong>Loop #02 ↗</strong>
-              </div>
+          <!-- 04 DYEING & PRINTING -->
+          <article class="ftg-thread-col" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" title="Inspect 04 Dyeing & Printing">
+            <div class="ftg-thread-dot-bar">
+              <img src="${blotObj.img}" alt="04 Botanical Dye Specimen" class="ftg-thread-dot" />
+              <span class="ftg-thread-rule"></span>
+              <span class="ftg-thread-num">04</span>
             </div>
+            <h3 class="ftg-thread-col__title">Dyeing &amp; Printing</h3>
+            <p class="ftg-thread-col__sub">${blotObj.name} ──────</p>
+            <p class="ftg-thread-col__body">
+              Bathed in living fermentation vats of wild plants, roots, and mineral mordants (${blotObj.lotCode}).
+            </p>
+            <span class="ftg-thread-col__link">+ Master Record ↗</span>
+          </article>
 
-            <div class="passport-stamp-card" onclick="navigateToMastersTechnique('04')" title="Inspect Loom Yardage & Lot Edition">
-              <div class="passport-stamp-card__top">
-                <span class="passport-stamp-card__num">STAMP 05 · EDITION LOT</span>
-                <span class="passport-stamp-card__seal">${product.status}</span>
-              </div>
-              <div class="passport-stamp-card__val">${lotCode} · Small-Batch Edition</div>
-              <div class="passport-stamp-card__footer">
-                <span>Limited Loom Yardage</span>
-                <strong>Loop #04 ↗</strong>
-              </div>
+          <!-- 05 FINISHING -->
+          <article class="ftg-thread-col" onclick="navigateToMastersTechnique('${ftg.glossary_loops.construction_id}')" title="Inspect 05 Finishing">
+            <div class="ftg-thread-dot-bar">
+              <img src="assets/blots/dot_apricot.png" alt="05 Finishing Specimen" class="ftg-thread-dot" />
+              <span class="ftg-thread-rule"></span>
+              <span class="ftg-thread-num">05</span>
             </div>
-
-            <div class="passport-stamp-card passport-stamp-card--clickable" onclick="navigateToMastersTechnique('01')" title="Open 01 Master Guild Dossier">
-              <div class="passport-stamp-card__top">
-                <span class="passport-stamp-card__num">STAMP 06 · MASTER GUILD ORIGIN</span>
-                <span class="passport-stamp-card__seal">Lineage</span>
-              </div>
-              <div class="passport-stamp-card__val">${product.origin}</div>
-              <div class="passport-stamp-card__footer">
-                <span>Inspect Guild Dossier #01</span>
-                <strong>Open Guild ↗</strong>
-              </div>
-            </div>
-          </div>
-        ` : `
-          <!-- DIRECTION 1 UX: Crisp 6-Row Swiss Architectural Ledger Table -->
-          <div class="production-record__table">
-            <div class="production-record__row">
-              <span class="production-record__label">Style</span>
-              <span class="production-record__val">${product.subtitle || product.title}</span>
-            </div>
-            <div class="production-record__row" onclick="navigateToMastersTechnique('06')" style="cursor:pointer" title="Click to view 06 Natural Dye in The Masters">
-              <span class="production-record__label">Expression &amp; Dye</span>
-              <span class="production-record__val">${expressionShort} — ${product.commercial_expression} <span style="text-decoration:underline;font-size:10px;margin-left:6px">View Dye Record ↗</span></span>
-            </div>
-            <div class="production-record__row" onclick="navigateToMastersTechnique('03')" style="cursor:pointer" title="Click to view 03 Handwoven in The Masters">
-              <span class="production-record__label">Textile &amp; Master</span>
-              <span class="production-record__val">${product.fibre} · ${product.fabric_technique} <span style="text-decoration:underline;font-size:10px;margin-left:6px">View Loom Record ↗</span></span>
-            </div>
-            <div class="production-record__row">
-              <span class="production-record__label">Product Reference</span>
-              <span class="production-record__val">${product.sku} · Catalog #${numStr}</span>
-            </div>
-            <div class="production-record__row">
-              <span class="production-record__label">Lot / Quantity</span>
-              <span class="production-record__val">${lotCode} · Limited Small-Batch Edition (${product.status})</span>
-            </div>
-            <div class="production-record__row" onclick="navigateToMastersTechnique('01')" style="cursor:pointer" title="Click to view Master Guilds in The Masters">
-              <span class="production-record__label">Production / Completion</span>
-              <span class="production-record__val">${product.origin} <span style="text-decoration:underline;font-size:10px;margin-left:6px">Master Guild ↗</span></span>
-            </div>
-          </div>
-        `}
+            <h3 class="ftg-thread-col__title">Finishing</h3>
+            <p class="ftg-thread-col__sub">Single-Tailor Fit ──────</p>
+            <p class="ftg-thread-col__body">
+              ${ftg.construction}. Cut and assembled by a single artisan with French seams to endure for generations.
+            </p>
+            <span class="ftg-thread-col__link">+ Master Record ↗</span>
+          </article>
+        </div>
       </section>
 
-      <!-- 5. WOVEN STONE BAND ACCORDIONS: CARE & REPAIR + SHIPPING & RETURNS -->
-      <section class="pdp-woven-band">
+      <!-- 4. LOT RECORD & ARCHIVAL GARMENT PASSPORT (Balconte & Aloha 13.52.21 Pure Luxury Monograph) -->
+      <section class="production-record-thread" id="pdp-production-record">
+        <div class="production-record-thread__inner">
+          <!-- Left Column: Editorial Monograph + Botanical Specimen Herbarium Strip -->
+          <div class="production-record-thread__left">
+            <span class="editorial-section-eyebrow">Lot Record · Provenance ──────────</span>
+            <h2 class="editorial-large-title">The Production Record.</h2>
+            <p class="production-record-thread__quote">
+              “Each Hartwick Atelier garment carries a numbered record of its botanical dye bath, loom yardage, and guild lineage.”
+            </p>
+
+            <!-- ARTISTIC BOTANICAL SPECIMEN STRIP (Herbarium Grade) -->
+            <div class="herbarium-specimen-strip">
+              <span class="herbarium-specimen-strip__title">Botanical Pigment Archive · Certified Vats</span>
+              <div class="herbarium-specimen-strip__dots">
+                <div class="herbarium-dot-card" onclick="navigateToMastersTechnique('06')">
+                  <img src="assets/blots/dot_indigo_moss.png" alt="Wild Indigo" />
+                  <span class="herbarium-dot-card__tag">VAT-IND-04</span>
+                  <span class="herbarium-dot-card__name">Indigofera tinctoria</span>
+                </div>
+                <div class="herbarium-dot-card" onclick="navigateToMastersTechnique('02')">
+                  <img src="assets/blots/dot_goldenrod.png" alt="Goldenrod" />
+                  <span class="herbarium-dot-card__tag">VAT-GLD-02</span>
+                  <span class="herbarium-dot-card__name">Solidago virgaurea</span>
+                </div>
+                <div class="herbarium-dot-card" onclick="navigateToMastersTechnique('03')">
+                  <img src="assets/blots/dot_walnut.png" alt="Black Walnut" />
+                  <span class="herbarium-dot-card__tag">VAT-WLN-03</span>
+                  <span class="herbarium-dot-card__name">Juglans nigra</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:28px">
+              <button
+                type="button"
+                class="editorial-outline-btn"
+                onclick="navigateToMastersTechnique('01')"
+              >
+                Open Master Dossier Workbench →
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Column: 6 Open Horizontal Ledger Rows (Pure Aloha 13.52.21 Luxury, Zero Box Clutter) -->
+          <div class="production-record-thread__right">
+            <div class="record-thread-row" onclick="navigateToMastersTechnique('09')">
+              <span class="record-thread-row__label">01 · Style &amp; Silhouette</span>
+              <span class="record-thread-row__val">${product.subtitle || product.title} · Tailored Silhouette <span class="record-thread-arrow">↗</span></span>
+            </div>
+            <div class="record-thread-row" onclick="navigateToMastersTechnique('06')">
+              <span class="record-thread-row__label">02 · Dyeing &amp; Printing</span>
+              <span class="record-thread-row__val">${blotObj.name} (${blotObj.lotCode}) <span class="record-thread-arrow">↗</span></span>
+            </div>
+            <div class="record-thread-row" onclick="navigateToMastersTechnique('03')">
+              <span class="record-thread-row__label">03 · Weaving &amp; Loom</span>
+              <span class="record-thread-row__val">${product.fibre} · Handloom Pit Weave (0 kWh) <span class="record-thread-arrow">↗</span></span>
+            </div>
+            <div class="record-thread-row" onclick="navigateToMastersTechnique('02')">
+              <span class="record-thread-row__label">04 · Archive Catalog</span>
+              <span class="record-thread-row__val">${product.sku} · Catalog #${numStr} <span class="record-thread-arrow">↗</span></span>
+            </div>
+            <div class="record-thread-row" onclick="navigateToMastersTechnique('04')">
+              <span class="record-thread-row__label">05 · Edition Lot</span>
+              <span class="record-thread-row__val">${lotCode} · Small-Batch Loom Yardage (${product.status}) <span class="record-thread-arrow">↗</span></span>
+            </div>
+            <div class="record-thread-row" onclick="navigateToMastersTechnique('01')">
+              <span class="record-thread-row__label">06 · Master Guild Origin</span>
+              <span class="record-thread-row__val">${product.origin} <span class="record-thread-arrow">↗</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. WOVEN STONE BAND: CARE & REPAIR + SHIPPING & RETURNS -->
+      <section class="pdp-woven-band editorial-woven-band">
         <div class="pdp-woven-band__inner">
-          <div class="accordion-item" id="acc-band-care" style="border-top:1px solid var(--border-strong)">
+          <div class="accordion-item" id="acc-band-care">
             <button class="accordion-trigger" onclick="toggleAccordion('acc-band-care')">
-              <span>Care &amp; Repair</span>
+              <span class="editorial-acc-title">Care &amp; Repair</span>
               <span class="accordion-icon">+</span>
             </button>
             <div class="accordion-content">
@@ -1996,9 +1886,9 @@ function renderProductPage() {
             </div>
           </div>
 
-          <div class="accordion-item" id="acc-band-shipping" style="border-top:1px solid var(--border-strong)">
+          <div class="accordion-item" id="acc-band-shipping">
             <button class="accordion-trigger" onclick="toggleAccordion('acc-band-shipping')">
-              <span>Shipping &amp; Returns</span>
+              <span class="editorial-acc-title">Shipping &amp; Returns</span>
               <span class="accordion-icon">+</span>
             </button>
             <div class="accordion-content">
@@ -2008,57 +1898,67 @@ function renderProductPage() {
         </div>
       </section>
 
-      <!-- 6. RELATED WORKS ("WEAR IT WITH" CROSS-SELL — Clean Editorial Gallery View) -->
-      <section class="related-works-section">
+      <!-- 6. RELATED WORKS ("WEAR IT WITH" — Balconte & Atelier / Thread Style Gallery) -->
+      <section class="related-works-section editorial-related-works">
         <div class="related-works-header">
           <div>
-            <span class="fibre-to-garment__eyebrow">Wear It With</span>
-            <h2 class="fibre-to-garment__title">RELATED WORKS</h2>
+            <span class="editorial-section-eyebrow">Curated Pairing ──────────</span>
+            <h2 class="editorial-large-title">Related Works.</h2>
           </div>
-          <button type="button" class="related-works-action" onclick="navigateTo('collection', 'all-apparel')">VIEW ENTIRE COLLECTION →</button>
+          <button type="button" class="editorial-text-link" onclick="navigateTo('collection', 'all-apparel')">
+            <span>View Entire Collection</span>
+            <span>⟶</span>
+          </button>
         </div>
 
         <div class="product-grid related-works-grid">
           ${[rec1, rec2, rec3].map(rec => `
-            <article class="product-card related-work-card" onclick="navigateTo('pdp', '${rec.handle}')">
+            <article class="product-card related-work-card editorial-product-card" onclick="navigateTo('pdp', '${rec.handle}')">
               <div class="product-card__media">
                 <img class="product-card__img product-card__img--primary" src="${rec.images[0]}" alt="${rec.title}" />
                 <img class="product-card__img product-card__img--secondary" src="${rec.images[1] || rec.images[0]}" alt="${rec.title}" />
               </div>
-              <div class="product-card__info">
-                <h3 class="product-card__title">${rec.title}</h3>
-                <p class="product-card__expression">${rec.commercial_expression}</p>
-                <p class="product-card__price">${formatPrice(rec)}</p>
+              <div class="editorial-card-info">
+                <div class="editorial-card-top-row">
+                  <h3 class="editorial-card-title">${rec.title}</h3>
+                  <span class="editorial-card-price">${formatPrice(rec)}</span>
+                </div>
+                <div class="editorial-card-sub-row">
+                  <span class="editorial-card-expression">${rec.commercial_expression} ──────</span>
+                </div>
               </div>
             </article>
           `).join("")}
         </div>
       </section>
 
-      <!-- 7. THE REGISTER (WOVEN STONE #E2DBD0 BANNER — SLIGHTLY DARKER THAN PAGE WITH SUBTLE WATERCOLOR WASH) -->
-      <section class="the-register-banner" id="pdp-the-register">
-        <div class="the-register-banner__vignette" aria-hidden="true">
-          <img src="${blotObj.swatch}" alt="" class="the-register-banner__wash the-register-banner__wash--left" />
-          <img src="assets/blots/swatch_marigold.png" alt="" class="the-register-banner__wash the-register-banner__wash--right" />
-        </div>
-        <div class="the-register-banner__inner">
-          <span class="the-register-banner__eyebrow">The Register · The Dispatch</span>
-          <p class="the-register-banner__quote">
-            “Correspondence from the Atelier, when there is something worth sending.”
-          </p>
-          <form class="dispatch-form the-register-banner__form" onsubmit="handleNewsletterSubmit(event, 'pdp-register-msg')">
-            <input
-              type="email"
-              class="dispatch-form__input the-register-banner__input"
-              placeholder="Your email address"
-              required
-              aria-label="Your email address"
-            />
-            <button type="submit" class="dispatch-form__btn the-register-banner__btn">
-              JOIN THE REGISTER
-            </button>
-          </form>
-          <div id="pdp-register-msg" class="dispatch-feedback" style="margin-top:14px"></div>
+      <!-- 7. THE REGISTER (Atelier / Thread Deep Plum & Walnut Split Section) -->
+      <section class="the-register-split-banner" id="pdp-the-register">
+        <div class="the-register-split-banner__inner">
+          <div class="the-register-split-banner__left">
+            <span class="the-register-split-banner__eyebrow">The Register · The Dispatch ──────────</span>
+            <h2 class="the-register-split-banner__quote">
+              “Correspondence from the Atelier, when there is something worth sending.”
+            </h2>
+          </div>
+          <div class="the-register-split-banner__right">
+            <p class="the-register-split-banner__lead">
+              The Dispatch carries production notes, material studies, conversations with Masters and considered notice of what the Atelier is making next.
+            </p>
+            <form class="the-register-split-banner__form" onsubmit="handleNewsletterSubmit(event, 'pdp-register-msg')">
+              <input
+                type="email"
+                class="the-register-split-banner__input"
+                placeholder="Your email address"
+                required
+                aria-label="Your email address"
+              />
+              <button type="submit" class="the-register-split-banner__btn">
+                JOIN THE REGISTER →
+              </button>
+            </form>
+            <div id="pdp-register-msg" class="dispatch-feedback"></div>
+          </div>
         </div>
       </section>
     </div>
