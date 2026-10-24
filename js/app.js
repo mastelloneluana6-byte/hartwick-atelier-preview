@@ -925,7 +925,35 @@ function renderHomepage() {
         </div>
       </section>
 
-      <!-- Newsletter section removed from homepage per user request -->
+      <!-- 5. THE DISPATCH NEWSLETTER (Deep Espresso #241914) -->
+      <section class="the-register-split-banner" id="home-the-register">
+        <div class="the-register-split-banner__inner">
+          <div class="the-register-split-banner__left">
+            <span class="the-register-split-banner__eyebrow">The Register · The Dispatch ──────────</span>
+            <h2 class="the-register-split-banner__quote">
+              “Correspondence from the Atelier, when there is something worth sending.”
+            </h2>
+          </div>
+          <div class="the-register-split-banner__right">
+            <p class="the-register-split-banner__lead">
+              The Dispatch carries production notes, material studies, conversations with Masters and considered notice of what the Atelier is making next.
+            </p>
+            <form class="the-register-split-banner__form" onsubmit="handleNewsletterSubmit(event, 'home-dispatch-msg')">
+              <input
+                type="email"
+                class="the-register-split-banner__input"
+                placeholder="Your email address"
+                required
+                aria-label="Your email address"
+              />
+              <button type="submit" class="the-register-split-banner__btn">
+                JOIN THE REGISTER →
+              </button>
+            </form>
+            <div id="home-dispatch-msg" class="dispatch-feedback"></div>
+          </div>
+        </div>
+      </section>
     </div>
   `;
 }
@@ -1647,7 +1675,30 @@ function renderProductPage() {
         </div>
       </section>
 
-      <!-- Woven stone band removed per user request -->
+      <!-- 5. COMPACT STREAMLINED CARE & REPAIR + SHIPPING & RETURNS BAND -->
+      <section class="pdp-woven-band editorial-woven-band pdp-woven-band--compact">
+        <div class="pdp-woven-band__inner">
+          <div class="accordion-item" id="acc-band-care">
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion('acc-band-care')">
+              <span class="editorial-acc-title">Care &amp; Repair</span>
+              <span class="accordion-icon">+</span>
+            </button>
+            <div class="accordion-content">
+              <p>Handwoven and naturally dyed textiles are living cloths. Gentle cold hand wash using pH-neutral soap or specialist eco dry clean. Dry flat in the shade. Complimentary heirloom repair guidance is offered for the life of the garment.</p>
+            </div>
+          </div>
+
+          <div class="accordion-item" id="acc-band-shipping">
+            <button type="button" class="accordion-trigger" onclick="toggleAccordion('acc-band-shipping')">
+              <span class="editorial-acc-title">Shipping &amp; Returns</span>
+              <span class="accordion-icon">+</span>
+            </button>
+            <div class="accordion-content">
+              <p>Dispatched from our European studio via insured DHL Express. Returns accepted on unworn pieces with original lot tags within 14 days of receipt. <button type="button" onclick="navigateTo('returns-policy')" class="pdp-inline-policy-link">Read Full Returns Policy →</button></p>
+            </div>
+          </div>
+        </div>
+      </section>
       <!-- 6. RELATED WORKS ("WEAR IT WITH" — Balconte & Atelier / Thread Style Gallery) -->
       <section class="related-works-section editorial-related-works">
         <div class="related-works-header">
@@ -1679,6 +1730,36 @@ function renderProductPage() {
               </div>
             </article>
           `).join("")}
+        </div>
+      </section>
+
+      <!-- 7. THE DISPATCH / THE REGISTER (Deep Espresso #241914) -->
+      <section class="the-register-split-banner" id="pdp-the-register">
+        <div class="the-register-split-banner__inner">
+          <div class="the-register-split-banner__left">
+            <span class="the-register-split-banner__eyebrow">The Register · The Dispatch ──────────</span>
+            <h2 class="the-register-split-banner__quote">
+              “Correspondence from the Atelier, when there is something worth sending.”
+            </h2>
+          </div>
+          <div class="the-register-split-banner__right">
+            <p class="the-register-split-banner__lead">
+              The Dispatch carries production notes, material studies, conversations with Masters and considered notice of what the Atelier is making next.
+            </p>
+            <form class="the-register-split-banner__form" onsubmit="handleNewsletterSubmit(event, 'pdp-register-msg')">
+              <input
+                type="email"
+                class="the-register-split-banner__input"
+                placeholder="Your email address"
+                required
+                aria-label="Your email address"
+              />
+              <button type="submit" class="the-register-split-banner__btn">
+                JOIN THE REGISTER →
+              </button>
+            </form>
+            <div id="pdp-register-msg" class="dispatch-feedback"></div>
+          </div>
         </div>
       </section>
 

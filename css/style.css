@@ -9000,3 +9000,238 @@ body.view-home .site-header {
 .pdp-compact-spec-row:hover .pdp-compact-spec-val {
   color: #582F37;
 }
+
+
+/* ==========================================================================
+   URGENT WEEKEND REVIEW UI FIXES (v48)
+   1. Collapsible Product Specifications Accordion (Left Column)
+   2. Ultra-Compact & Streamlined Shipping & Returns Band
+   3. Deep Espresso (#241914) Dispatch / Newsletter Section with Fixed Contrast & Layout
+   ========================================================================== */
+
+/* 1. Ensure Collapsible Specifications Accordion is Clean & Structured */
+.pdp-left-accordions {
+  display: block !important;
+  margin-top: 1.1rem !important;
+  border-top: 1px solid rgba(36, 25, 20, 0.14) !important;
+}
+
+.pdp-left-accordions .accordion-item {
+  border-bottom: 1px solid rgba(36, 25, 20, 0.14) !important;
+}
+
+.pdp-left-accordions .accordion-trigger {
+  padding: 12px 0 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.2em !important;
+  font-weight: 500 !important;
+  color: #241914 !important;
+}
+
+.pdp-left-accordions .accordion-icon {
+  font-size: 14px !important;
+  font-weight: 300 !important;
+  color: #241914 !important;
+  transition: transform 0.25s ease !important;
+}
+
+.pdp-left-accordions .accordion-item.open .accordion-icon {
+  transform: rotate(45deg) !important;
+}
+
+/* 2. Compact & Streamlined Shipping & Returns Band (Ref. Image 2) */
+.pdp-woven-band,
+.pdp-woven-band.editorial-woven-band,
+.pdp-woven-band--compact {
+  display: block !important;
+  background: #F6F3EC !important;
+  background-image: none !important;
+  padding: 1.6rem var(--gutter) !important;
+  border-top: 1px solid rgba(36, 25, 20, 0.1) !important;
+  border-bottom: 1px solid rgba(36, 25, 20, 0.1) !important;
+}
+
+.pdp-woven-band__inner {
+  max-width: var(--max-width) !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 3rem !important;
+  align-items: start !important;
+}
+
+.pdp-woven-band .accordion-item {
+  border-top: none !important;
+  border-bottom: 1px solid rgba(36, 25, 20, 0.14) !important;
+}
+
+.pdp-woven-band .accordion-trigger {
+  padding: 10px 0 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  width: 100% !important;
+}
+
+.pdp-woven-band .editorial-acc-title {
+  font-family: var(--font-sans) !important;
+  font-size: 10.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: #241914 !important;
+}
+
+.pdp-woven-band .accordion-content {
+  padding: 4px 0 12px 0 !important;
+  font-size: 13px !important;
+  line-height: 1.65 !important;
+  color: #544D45 !important;
+}
+
+.pdp-inline-policy-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #241914;
+  text-decoration: underline;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+/* Also make right-column Delivery & Returns / How It Fits accordions extra compact */
+.aloha-pdp__right .pdp-accordions .accordion-trigger {
+  padding: 11px 0 !important;
+  font-size: 10px !important;
+  letter-spacing: 0.18em !important;
+}
+
+.aloha-pdp__right .pdp-accordions .accordion-content {
+  padding-bottom: 12px !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+}
+
+/* 3. The Dispatch / Newsletter Section — Deep Espresso Tone (#241914) & Fixed Overlap/Contrast (Ref. Image 3) */
+.the-register-split-banner {
+  display: block !important;
+  background: #241914 !important;
+  color: #FAF8F4 !important;
+  padding: clamp(4.2rem, 6.5vw, 5.8rem) var(--gutter) !important;
+  border-top: 1px solid rgba(250, 248, 244, 0.08) !important;
+  border-bottom: 1px solid rgba(250, 248, 244, 0.08) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.the-register-split-banner__inner {
+  max-width: var(--max-width) !important;
+  margin: 0 auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr) !important;
+  gap: clamp(2.5rem, 5vw, 5rem) !important;
+  align-items: center !important;
+}
+
+.the-register-split-banner__left,
+.the-register-split-banner__right {
+  min-width: 0 !important;
+}
+
+.the-register-split-banner__eyebrow {
+  display: block !important;
+  font-family: var(--font-sans) !important;
+  font-size: 9.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.24em !important;
+  text-transform: uppercase !important;
+  color: rgba(250, 248, 244, 0.62) !important;
+  margin-bottom: 14px !important;
+}
+
+.the-register-split-banner__quote {
+  font-family: 'Cormorant Garamond', var(--font-serif) !important;
+  font-style: italic !important;
+  font-size: clamp(1.85rem, 2.8vw, 2.55rem) !important;
+  font-weight: 300 !important;
+  line-height: 1.28 !important;
+  color: #FAF8F4 !important;
+  margin: 0 !important;
+  overflow-wrap: break-word !important;
+}
+
+.the-register-split-banner__lead {
+  font-family: 'Spectral', Georgia, serif !important;
+  font-size: 15px !important;
+  line-height: 1.78 !important;
+  color: rgba(250, 248, 244, 0.86) !important;
+  margin: 0 0 24px 0 !important;
+  max-width: 520px !important;
+}
+
+.the-register-split-banner__form {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  border-bottom: 1px solid rgba(250, 248, 244, 0.32) !important;
+  padding-bottom: 10px !important;
+  width: 100% !important;
+}
+
+.the-register-split-banner__input {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  color: #FAF8F4 !important;
+  outline: none !important;
+  padding: 6px 0 !important;
+}
+
+.the-register-split-banner__input::placeholder {
+  color: rgba(250, 248, 244, 0.5) !important;
+}
+
+.the-register-split-banner__btn {
+  flex: 0 0 auto !important;
+  background: rgba(250, 248, 244, 0.1) !important;
+  color: #FAF8F4 !important;
+  border: 1px solid rgba(250, 248, 244, 0.28) !important;
+  padding: 9px 18px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 9.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.2em !important;
+  text-transform: uppercase !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease !important;
+}
+
+.the-register-split-banner__btn:hover {
+  background: #FAF8F4 !important;
+  color: #241914 !important;
+  border-color: #FAF8F4 !important;
+}
+
+/* Harmonize Footer with Deep Espresso #241914 or Warm Linen */
+.hale-textile-banner__scrim {
+  background: linear-gradient(
+    180deg,
+    #F6F3EC 0%,
+    rgba(246, 243, 236, 0.45) 16%,
+    rgba(236, 229, 217, 0.25) 55%,
+    rgba(232, 225, 212, 0.55) 100%
+  ) !important;
+}
+
+@media (max-width: 900px) {
+  .the-register-split-banner__inner,
+  .pdp-woven-band__inner {
+    grid-template-columns: 1fr !important;
+    gap: 1.8rem !important;
+  }
+}
