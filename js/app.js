@@ -1637,30 +1637,6 @@ function renderProductPage() {
         </div>
       </section>
 
-      <!-- 5. COMPACT STREAMLINED CARE & REPAIR + SHIPPING & RETURNS BAND -->
-      <section class="pdp-woven-band editorial-woven-band pdp-woven-band--compact">
-        <div class="pdp-woven-band__inner">
-          <div class="accordion-item" id="acc-band-care">
-            <button type="button" class="accordion-trigger" onclick="toggleAccordion('acc-band-care')">
-              <span class="editorial-acc-title">Care &amp; Repair</span>
-              <span class="accordion-icon">+</span>
-            </button>
-            <div class="accordion-content">
-              <p>Handwoven and naturally dyed textiles are living cloths. Gentle cold hand wash using pH-neutral soap or specialist eco dry clean. Dry flat in the shade. Complimentary heirloom repair guidance is offered for the life of the garment.</p>
-            </div>
-          </div>
-
-          <div class="accordion-item" id="acc-band-shipping">
-            <button type="button" class="accordion-trigger" onclick="toggleAccordion('acc-band-shipping')">
-              <span class="editorial-acc-title">Shipping &amp; Returns</span>
-              <span class="accordion-icon">+</span>
-            </button>
-            <div class="accordion-content">
-              <p>Dispatched from our European studio via insured DHL Express. Returns accepted on unworn pieces with original lot tags within 14 days of receipt. <button type="button" onclick="navigateTo('returns-policy')" class="pdp-inline-policy-link">Read Full Returns Policy →</button></p>
-            </div>
-          </div>
-        </div>
-      </section>
       <!-- 6. RELATED WORKS ("WEAR IT WITH" — Balconte & Atelier / Thread Style Gallery) -->
       <section class="related-works-section editorial-related-works">
         <div class="related-works-header">
@@ -2968,6 +2944,52 @@ function renderReturnsPolicyPage() {
 // INTERACTIVE HANDLERS & SCROLL REVEAL OBSERVER
 // ==========================================================================
 function initScrollAnimations() {
+  // Automatically attach .reveal-on-scroll & staggered delays to all key editorial elements across all pages
+  const autoRevealSelectors = [
+    ".hale-manifesto__inner",
+    ".hale-categories__header",
+    ".hale-cat-card",
+    ".editorial-collection-header",
+    ".editorial-collection-tabs",
+    ".product-card",
+    ".aloha-pdp__left",
+    ".aloha-pdp__center",
+    ".aloha-pdp__right",
+    ".masters-tool-banner__overlay",
+    ".ftg-thread-header",
+    ".ftg-thread-col",
+    ".production-record-thread__left",
+    ".record-thread-row",
+    ".related-works-header",
+    ".related-work-card",
+    ".the-register-split-banner__left",
+    ".the-register-split-banner__right",
+    ".site-footer__inner > div"
+  ];
+
+  document.querySelectorAll(autoRevealSelectors.join(", ")).forEach(el => {
+    if (!el.classList.contains("reveal-on-scroll")) {
+      el.classList.add("reveal-on-scroll");
+    }
+  });
+
+  // Apply staggered transition delays to grid/list siblings for silky editorial choreography
+  const staggerGroups = [
+    ".hale-categories__grid .hale-cat-card",
+    ".editorial-collection-grid .product-card",
+    ".ftg-thread-grid .ftg-thread-col",
+    ".production-record-thread__right .record-thread-row",
+    ".related-works-grid .related-work-card",
+    ".site-footer__inner > div"
+  ];
+
+  staggerGroups.forEach(groupSel => {
+    document.querySelectorAll(groupSel).forEach((item, idx) => {
+      const delayMs = (idx % 5) * 95;
+      item.style.transitionDelay = `${delayMs}ms`;
+    });
+  });
+
   const elements = document.querySelectorAll(".reveal-on-scroll, .luxury-img-reveal");
   if (!("IntersectionObserver" in window)) {
     elements.forEach(el => el.classList.add("is-visible"));
