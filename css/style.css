@@ -9235,3 +9235,133 @@ body.view-home .site-header {
     gap: 1.8rem !important;
   }
 }
+
+
+/* ==========================================================================
+   V49 REFINEMENTS:
+   1. Remove Homepage Textile Banner (.hale-textile-banner)
+   2. Remove Top PDP Register Whisper (.editorial-register-whisper)
+   3. High-End Seamless Deep Espresso Footer (#241914 -> #1D1410) Matching The Dispatch
+   ========================================================================== */
+
+.hale-textile-banner,
+.editorial-register-whisper {
+  display: none !important;
+}
+
+/* Seamless Deep Espresso Progression: The Dispatch (#241914) -> Atelier Footer (#1E1510) */
+.the-register-split-banner {
+  background: #241914 !important;
+  color: #FAF8F4 !important;
+  border-top: none !important;
+  border-bottom: 1px solid rgba(250, 248, 244, 0.09) !important;
+}
+
+.site-footer,
+footer.site-footer#sec-2-10-footer {
+  background: #1E1510 !important;
+  background-image: none !important;
+  color: #FAF8F4 !important;
+  border-top: none !important;
+  padding: clamp(4.2rem, 6vw, 5.5rem) var(--gutter) 2.8rem var(--gutter) !important;
+}
+
+.site-footer::before,
+.site-footer::after,
+.site-footer__transition-line {
+  display: none !important;
+}
+
+.footer-brand__crest {
+  filter: brightness(0) invert(1) !important;
+  opacity: 0.92 !important;
+}
+
+.footer-brand__wordmark-main {
+  color: #FAF8F4 !important;
+  letter-spacing: 0.24em !important;
+}
+
+.footer-brand__wordmark-sub {
+  color: rgba(250, 248, 244, 0.62) !important;
+  letter-spacing: 0.32em !important;
+}
+
+.footer-brand__philosophy {
+  color: rgba(250, 248, 244, 0.78) !important;
+  font-family: 'Cormorant Garamond', var(--font-serif) !important;
+  font-style: italic !important;
+  font-size: 16px !important;
+  line-height: 1.65 !important;
+}
+
+.footer-brand__provenance {
+  color: rgba(250, 248, 244, 0.5) !important;
+  font-size: 9.5px !important;
+  letter-spacing: 0.22em !important;
+}
+
+.footer-links-title {
+  color: rgba(250, 248, 244, 0.52) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 9.5px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.24em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 1.4rem !important;
+}
+
+.footer-links-list li button,
+.footer-links-list button {
+  color: rgba(250, 248, 244, 0.84) !important;
+  font-family: var(--font-sans) !important;
+  font-size: 11px !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  transition: color 0.25s ease, transform 0.25s ease !important;
+}
+
+.footer-links-list li button:hover,
+.footer-links-list button:hover {
+  color: #FFFFFF !important;
+}
+
+.footer-concierge__copy {
+  color: rgba(250, 248, 244, 0.72) !important;
+  font-size: 13.5px !important;
+  line-height: 1.68 !important;
+}
+
+.footer-concierge__email {
+  color: #FAF8F4 !important;
+  border-bottom: 1px solid rgba(250, 248, 244, 0.35) !important;
+  text-decoration: none !important;
+  padding-bottom: 2px !important;
+  transition: border-color 0.25s ease !important;
+}
+
+.footer-concierge__email:hover {
+  border-bottom-color: #FAF8F4 !important;
+}
+
+.footer-concierge__action,
+.footer-concierge__social {
+  color: rgba(250, 248, 244, 0.82) !important;
+  font-size: 10px !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+}
+
+.footer-concierge__action:hover,
+.footer-concierge__social:hover {
+  color: #FFFFFF !important;
+}
+
+.site-footer__bottom {
+  border-top: 1px solid rgba(250, 248, 244, 0.1) !important;
+  color: rgba(250, 248, 244, 0.48) !important;
+  padding-top: 1.8rem !important;
+  margin-top: 3.5rem !important;
+  font-size: 9.5px !important;
+  letter-spacing: 0.18em !important;
+}

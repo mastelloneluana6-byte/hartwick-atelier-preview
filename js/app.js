@@ -904,27 +904,6 @@ function renderHomepage() {
         </div>
       </section>
 
-      <!-- 4. LARGE TACTILE TEXTILE ILLUSTRATION BANNER (Quiet Luxury / Hale Mercantile Aesthetic) -->
-      <section class="hale-textile-banner">
-        <div class="hale-textile-banner__media">
-          <img 
-            src="assets/editorial/warm_khadi_weave.jpg" 
-            alt="Hartwick Atelier — Handspun & Handwoven Natural Cloth" 
-            class="hale-textile-banner__img"
-            loading="lazy"
-          />
-          <div class="hale-textile-banner__scrim"></div>
-        </div>
-        <div class="hale-textile-banner__inner">
-          <p class="hale-textile-banner__copy">
-            An invitation to experience material through touch and tone. Handwoven in numbered lots to explore pigment, depth and the quiet art of natural cloth.
-          </p>
-          <button class="hale-textile-banner__cta" onclick="navigateTo('collection', 'all-apparel')">
-            ( EXPLORE TEXTILES &amp; SILHOUETTES )
-          </button>
-        </div>
-      </section>
-
       <!-- 5. THE DISPATCH NEWSLETTER (Deep Espresso #241914) -->
       <section class="the-register-split-banner" id="home-the-register">
         <div class="the-register-split-banner__inner">
@@ -1469,24 +1448,7 @@ function renderProductPage() {
             </div>
           </div>
 
-          <!-- Refined Minimalist Register Whisper (No Heavy Box) -->
-          <div class="editorial-register-whisper">
-            <span class="editorial-register-whisper__label">The Register · Loom Release Notice</span>
-            <p class="editorial-register-whisper__text">
-              Woven in limited small batches. Enter your email for private notice when future editions leave the loom.
-            </p>
-            <form class="editorial-register-whisper__form" onsubmit="handleNewsletterSubmit(event, 'pdp-hero-register-msg')">
-              <input
-                type="email"
-                class="editorial-register-whisper__input"
-                placeholder="your@email.com"
-                required
-                aria-label="Email address for lot release notice"
-              />
-              <button type="submit" class="editorial-register-whisper__btn">Join →</button>
-            </form>
-            <div id="pdp-hero-register-msg" class="dispatch-feedback"></div>
-          </div>
+          
         </div>
       </section>
 
