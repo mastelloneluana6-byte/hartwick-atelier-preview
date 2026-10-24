@@ -925,35 +925,7 @@ function renderHomepage() {
         </div>
       </section>
 
-      <!-- 5. THE DISPATCH NEWSLETTER (Velvety Deep Plum/Walnut Finish) -->
-      <section class="the-register-split-banner">
-        <div class="the-register-split-banner__inner">
-          <div class="the-register-split-banner__left">
-            <span class="the-register-split-banner__eyebrow">The Register · The Dispatch ──────────</span>
-            <h2 class="the-register-split-banner__quote">
-              “Correspondence from the Atelier, when there is something worth sending.”
-            </h2>
-          </div>
-          <div class="the-register-split-banner__right">
-            <p class="the-register-split-banner__lead">
-              The Dispatch carries production notes, material studies, conversations with Masters and considered notice of what the Atelier is making next.
-            </p>
-            <form class="the-register-split-banner__form" onsubmit="handleNewsletterSubmit(event, 'home-dispatch-msg')">
-              <input
-                type="email"
-                class="the-register-split-banner__input"
-                placeholder="Your email address"
-                required
-                aria-label="Your email address"
-              />
-              <button type="submit" class="the-register-split-banner__btn">
-                JOIN THE REGISTER →
-              </button>
-            </form>
-            <div id="home-dispatch-msg" class="dispatch-feedback"></div>
-          </div>
-        </div>
-      </section>
+      <!-- Newsletter section removed from homepage per user request -->
     </div>
   `;
 }
@@ -1295,7 +1267,7 @@ function renderProductPage() {
     <div class="aloha-pdp view-enter editorial-elevated">
       <!-- 1. THREE-COLUMN HERO (High-Fashion Balconte & Aloha Editorial Architecture) -->
       <section class="aloha-pdp__hero-grid">
-        <!-- LEFT COLUMN: Breadcrumb, Sculpted Title, Botanical Specimen Pill, Narrative, Spec Ledger -->
+        <!-- LEFT COLUMN: Compact Title, Concise Lead & Collapsible High-End Accordions -->
         <div class="aloha-pdp__left">
           <div>
             <nav class="aloha-pdp__breadcrumb editorial-breadcrumb">
@@ -1307,52 +1279,82 @@ function renderProductPage() {
             <h1 class="aloha-pdp__title editorial-title">${styleTitle}</h1>
             <p class="aloha-pdp__subtitle editorial-subtitle">${product.commercial_expression}</p>
 
-            <!-- ARTISTIC BOTANICAL PIGMENT PILL (Discrete, High-End Museum Specimen) -->
-            <div class="botanical-hero-pill" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" title="Inspect ${blotObj.name} in The Masters">
-              <img src="${blotObj.img}" alt="${blotObj.name}" class="botanical-hero-pill__dot" />
-              <div class="botanical-hero-pill__meta">
-                <span class="botanical-hero-pill__label">Botanical Vat Specimen · ${blotObj.lotCode}</span>
-                <span class="botanical-hero-pill__name">${blotObj.name} ↗</span>
-              </div>
-            </div>
-
-            <!-- Storytelling Narrative -->
-            <div class="aloha-pdp__story editorial-story">
-              <p>${product.long_description}</p>
+            <!-- Concise Lead Paragraph -->
+            <div class="aloha-pdp__story editorial-story editorial-story--compact">
               <p>${product.short_description}</p>
             </div>
 
-            <!-- 5-Row Clean Architectural Spec Ledger (Zero Box Buttons) -->
-            <div class="aloha-pdp__spec-list editorial-spec-list">
-              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')" title="Inspect Fibre Record">
-                <span class="aloha-pdp__spec-label">Fibre</span>
-                <span class="aloha-pdp__spec-val">${ftg.fiber} <span class="spec-arrow">↗</span></span>
+            <!-- COMPACT COLLAPSIBLE ACCORDIONS (Left Column Uitklapmenu) -->
+            <div class="pdp-accordions editorial-accordions pdp-left-accordions">
+              <!-- 1. Description & Atelier Notes -->
+              <div class="accordion-item" id="acc-left-story">
+                <button type="button" class="accordion-trigger" onclick="toggleAccordion('acc-left-story')">
+                  <span>Description &amp; Atelier Notes</span>
+                  <span class="accordion-icon">+</span>
+                </button>
+                <div class="accordion-content">
+                  <p>${product.long_description}</p>
+                  <div class="botanical-hero-pill botanical-hero-pill--compact" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" title="Inspect ${blotObj.name} in The Masters">
+                    <img src="${blotObj.img}" alt="${blotObj.name}" class="botanical-hero-pill__dot" />
+                    <div class="botanical-hero-pill__meta">
+                      <span class="botanical-hero-pill__label">Botanical Vat · ${blotObj.lotCode}</span>
+                      <span class="botanical-hero-pill__name">${blotObj.name} ↗</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.spinning_id}')" title="Inspect Spinning Record">
-                <span class="aloha-pdp__spec-label">Spinning</span>
-                <span class="aloha-pdp__spec-val">Charkha Handspun (0 kWh) <span class="spec-arrow">↗</span></span>
+
+              <!-- 2. Fibre & Craft Provenance (Compact Collapsible Spec Rows) -->
+              <div class="accordion-item" id="acc-left-specs">
+                <button type="button" class="accordion-trigger" onclick="toggleAccordion('acc-left-specs')">
+                  <span>Fibre &amp; Craft Provenance</span>
+                  <span class="accordion-icon">+</span>
+                </button>
+                <div class="accordion-content">
+                  <div class="pdp-compact-spec-table">
+                    <div class="pdp-compact-spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.fibre_id}')">
+                      <span class="pdp-compact-spec-label">Fibre</span>
+                      <span class="pdp-compact-spec-val">${ftg.fiber} ↗</span>
+                    </div>
+                    <div class="pdp-compact-spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.spinning_id}')">
+                      <span class="pdp-compact-spec-label">Spinning</span>
+                      <span class="pdp-compact-spec-val">Charkha Handspun (0 kWh) ↗</span>
+                    </div>
+                    <div class="pdp-compact-spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.weaving_id}')">
+                      <span class="pdp-compact-spec-label">Weaving</span>
+                      <span class="pdp-compact-spec-val">${ftg.weaving} ↗</span>
+                    </div>
+                    <div class="pdp-compact-spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')">
+                      <span class="pdp-compact-spec-label">Dyeing</span>
+                      <span class="pdp-compact-spec-val">${expressionShort} ↗</span>
+                    </div>
+                    <div class="pdp-compact-spec-row" onclick="scrollToElementById('pdp-fibre-to-garment')">
+                      <span class="pdp-compact-spec-label">Finishing</span>
+                      <span class="pdp-compact-spec-val">Single-Tailor Heirloom Fit ↓</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.weaving_id}')" title="Inspect Weave Record">
-                <span class="aloha-pdp__spec-label">Weaving</span>
-                <span class="aloha-pdp__spec-val">${ftg.weaving} <span class="spec-arrow">↗</span></span>
-              </div>
-              <div class="aloha-pdp__spec-row" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')" title="Inspect Natural Dye Record">
-                <span class="aloha-pdp__spec-label">Dyeing &amp; Printing</span>
-                <span class="aloha-pdp__spec-val">${expressionShort} <span class="spec-arrow">↗</span></span>
-              </div>
-              <div class="aloha-pdp__spec-row" onclick="scrollToElementById('pdp-fibre-to-garment')" title="Scroll to From Fibre to Garment">
-                <span class="aloha-pdp__spec-label">Finishing</span>
-                <span class="aloha-pdp__spec-val">Single-Tailor Heirloom Fit <span class="spec-arrow">↓</span></span>
+
+              <!-- 3. Care & Heirloom Repair -->
+              <div class="accordion-item" id="acc-left-care">
+                <button type="button" class="accordion-trigger" onclick="toggleAccordion('acc-left-care')">
+                  <span>Care &amp; Repair</span>
+                  <span class="accordion-icon">+</span>
+                </button>
+                <div class="accordion-content">
+                  <p>Handwoven and naturally dyed textiles are living cloths. Gentle cold hand wash using pH-neutral soap or specialist eco dry clean. Dry flat in the shade. Complimentary heirloom repair guidance is offered for the life of the garment.</p>
+                </div>
               </div>
             </div>
 
-            <div class="hero-editorial-links">
+            <div class="hero-editorial-links" style="margin-top: 1.2rem;">
               <button type="button" class="editorial-text-link" onclick="scrollToElementById('pdp-fibre-to-garment')">
                 <span>Explore Fibre to Garment</span>
                 <span>↓</span>
               </button>
               <button type="button" class="editorial-text-link" onclick="navigateToMastersTechnique('${ftg.glossary_loops.dyeing_id}')">
-                <span>Open Master &amp; Textile Glossary</span>
+                <span>Master &amp; Textile Glossary</span>
                 <span>⟶</span>
               </button>
             </div>
@@ -1645,31 +1647,7 @@ function renderProductPage() {
         </div>
       </section>
 
-      <!-- 5. WOVEN STONE BAND: CARE & REPAIR + SHIPPING & RETURNS -->
-      <section class="pdp-woven-band editorial-woven-band">
-        <div class="pdp-woven-band__inner">
-          <div class="accordion-item" id="acc-band-care">
-            <button class="accordion-trigger" onclick="toggleAccordion('acc-band-care')">
-              <span class="editorial-acc-title">Care &amp; Repair</span>
-              <span class="accordion-icon">+</span>
-            </button>
-            <div class="accordion-content">
-              <p>Handwoven and naturally dyed textiles are living cloths. Gentle cold hand wash using pH-neutral soap or specialist eco dry clean. Dry flat in the shade away from direct sunlight. Our atelier offers complimentary heirloom repair guidance for the life of the garment.</p>
-            </div>
-          </div>
-
-          <div class="accordion-item" id="acc-band-shipping">
-            <button class="accordion-trigger" onclick="toggleAccordion('acc-band-shipping')">
-              <span class="editorial-acc-title">Shipping &amp; Returns</span>
-              <span class="accordion-icon">+</span>
-            </button>
-            <div class="accordion-content">
-              <p>Dispatched from our European studio via insured DHL Express. We accept returns on unworn pieces with original lot tags attached within 14 days of receipt. <button onclick="navigateTo('returns-policy')" style="background:none;border:none;text-decoration:underline;cursor:pointer;font-size:inherit">Read Full Returns Policy →</button></p>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      <!-- Woven stone band removed per user request -->
       <!-- 6. RELATED WORKS ("WEAR IT WITH" — Balconte & Atelier / Thread Style Gallery) -->
       <section class="related-works-section editorial-related-works">
         <div class="related-works-header">
@@ -1704,35 +1682,7 @@ function renderProductPage() {
         </div>
       </section>
 
-      <!-- 7. THE REGISTER (Atelier / Thread Deep Plum & Walnut Split Section) -->
-      <section class="the-register-split-banner" id="pdp-the-register">
-        <div class="the-register-split-banner__inner">
-          <div class="the-register-split-banner__left">
-            <span class="the-register-split-banner__eyebrow">The Register · The Dispatch ──────────</span>
-            <h2 class="the-register-split-banner__quote">
-              “Correspondence from the Atelier, when there is something worth sending.”
-            </h2>
-          </div>
-          <div class="the-register-split-banner__right">
-            <p class="the-register-split-banner__lead">
-              The Dispatch carries production notes, material studies, conversations with Masters and considered notice of what the Atelier is making next.
-            </p>
-            <form class="the-register-split-banner__form" onsubmit="handleNewsletterSubmit(event, 'pdp-register-msg')">
-              <input
-                type="email"
-                class="the-register-split-banner__input"
-                placeholder="Your email address"
-                required
-                aria-label="Your email address"
-              />
-              <button type="submit" class="the-register-split-banner__btn">
-                JOIN THE REGISTER →
-              </button>
-            </form>
-            <div id="pdp-register-msg" class="dispatch-feedback"></div>
-          </div>
-        </div>
-      </section>
+      
     </div>
   `;
 }
