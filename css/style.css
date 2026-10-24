@@ -9530,3 +9530,39 @@ footer.site-footer#sec-2-10-footer {
   transform: scaleX(1);
   transform-origin: left center;
 }
+
+
+/* ==========================================================================
+   V51: IDENTICAL DEEP ESPRESSO (#241914) & ZERO DIVIDER LINE BETWEEN DISPATCH & FOOTER
+   ========================================================================== */
+.the-register-split-banner,
+.site-footer,
+footer.site-footer#sec-2-10-footer {
+  background: #241914 !important;
+  background-color: #241914 !important;
+  background-image: none !important;
+  border-top: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.the-register-split-banner {
+  padding-bottom: 3rem !important;
+}
+
+.site-footer,
+footer.site-footer#sec-2-10-footer {
+  padding-top: 3rem !important;
+}
+
+.site-footer__transition-line,
+.site-footer::before,
+.site-footer::after,
+.the-register-split-banner::before,
+.the-register-split-banner::after {
+  display: none !important;
+  border: none !important;
+  height: 0 !important;
+}
