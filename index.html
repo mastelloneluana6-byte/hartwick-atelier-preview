@@ -15,78 +15,9 @@
 </head>
 <body class="concept-b">
 
-  <!-- Clean Single-Line Presentation Bar: [Direction 2 Chosen]  |  [Connected Flow: Homepage -> Product Page -> Fibre to Garment -> The Masters]  |  [Garment] -->
-  <div class="announcement-bar">
-    <!-- LEFT: Direction 2 Chosen (with optional toggle to compare Direction 1) -->
-    <div class="announcement-bar__group">
-      <span class="announcement-bar__label">Chosen Direction:</span>
-      <button
-        id="concept-btn-b"
-        class="review-jump-btn review-jump-btn--active"
-        onclick="setDesignConcept('B')"
-      >
-        ✦ Direction 2: Botanical Atelier (Chosen)
-      </button>
-      <button
-        id="concept-btn-a"
-        class="review-jump-btn"
-        onclick="setDesignConcept('A')"
-      >
-        Direction 1
-      </button>
-    </div>
-
-    <!-- CENTER: The Connected Flow (Homepage -> Product Page -> Fibre to Garment -> The Masters) -->
-    <div class="announcement-bar__flow">
-      <span class="announcement-bar__label">Flow:</span>
-      <button
-        class="review-jump-btn"
-        id="quick-btn-home"
-        onclick="navigateTo('home')"
-      >
-        Homepage
-      </button>
-      <span class="announcement-bar__arrow">→</span>
-      <button
-        class="review-jump-btn review-jump-btn--active"
-        id="quick-btn-pdp"
-        onclick="navigateTo('pdp', STATE.currentProductHandle || 'tribeca-matka-silk-emerald')"
-      >
-        1. Product Page
-      </button>
-      <span class="announcement-bar__arrow">→</span>
-      <button
-        class="review-jump-btn"
-        id="quick-btn-record"
-        onclick="goToProductionRecordFlow()"
-      >
-        2. Fibre to Garment &amp; Record
-      </button>
-      <span class="announcement-bar__arrow">→</span>
-      <button
-        class="review-jump-btn"
-        id="quick-btn-masters"
-        onclick="navigateTo('the-masters')"
-      >
-        3. The Masters &amp; Glossary
-      </button>
-    </div>
-
-    <!-- RIGHT: Sample Garment Selector -->
-    <div class="announcement-bar__utils">
-      <span class="announcement-bar__label">Garment:</span>
-      <select
-        id="garment-switcher-select"
-        aria-label="Select Sample Garment"
-        onchange="navigateTo('pdp', this.value)"
-        class="announcement-bar__select"
-      >
-        <option value="tribeca-matka-silk-emerald">Tribeca Skirt — Emerald</option>
-        <option value="tribeca-checkerboard-navy">Tribeca Skirt — Navy</option>
-        <option value="palma-fresh-pink-cotton">Palma Skirt — Fresh Pink</option>
-        <option value="samarkand-black-marble-inlay">Samarkand Dress — Black</option>
-      </select>
-    </div>
+  <!-- TOP LUXURY ANNOUNCEMENT BAR (HALE MERCANTILE STYLE) -->
+  <div class="luxury-top-bar">
+    <span>COMPLIMENTARY INSURED WORLDWIDE DELIVERY ON ORDERS OVER €500</span>
   </div>
 
   <!-- Hidden legacy banner (replaced by inline return pill + top 3-step flow bar) -->

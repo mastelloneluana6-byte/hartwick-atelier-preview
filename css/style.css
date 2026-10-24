@@ -7285,3 +7285,425 @@ body.concept-b .site-footer,
     grid-template-columns: 1fr;
   }
 }
+
+
+
+/* ==========================================================================
+   HALE MERCANTILE ULTRA-LUXURY HOMEPAGE & MEGAMENU SYSTEM
+   ========================================================================== */
+.luxury-top-bar {
+  background: #383430;
+  color: #FAF8F4;
+  text-align: center;
+  padding: 8.5px var(--gutter);
+  font-size: 9.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+  border-bottom: 1px solid rgba(250, 248, 244, 0.08);
+}
+
+/* Hale Full-Width Megamenu */
+.nav-item--megamenu {
+  position: static !important;
+}
+.nav-megamenu--hale {
+  position: absolute !important;
+  top: 100% !important;
+  left: 0 !important;
+  width: 100vw !important;
+  max-width: 100vw !important;
+  background: #EFECE6 !important;
+  border-top: 1px solid rgba(30, 27, 24, 0.1) !important;
+  border-bottom: 1px solid rgba(30, 27, 24, 0.14) !important;
+  box-shadow: 0 36px 72px rgba(20, 18, 16, 0.12) !important;
+  padding: 3.5rem var(--gutter) !important;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(8px);
+  transition: all 0.35s var(--transition-luxury);
+  z-index: 1000;
+}
+.nav-item:hover .nav-megamenu--hale {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translateY(0) !important;
+}
+.nav-megamenu--hale__inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1.35fr;
+  gap: 3.5rem;
+}
+.nav-megamenu__spotlight-card {
+  display: flex;
+  gap: 20px;
+  background: rgba(250, 248, 244, 0.6);
+  border: 1px solid rgba(30, 27, 24, 0.1);
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.nav-megamenu__spotlight-card:hover {
+  background: rgba(250, 248, 244, 0.95);
+  transform: translateY(-2px);
+  border-color: rgba(30, 27, 24, 0.22);
+}
+.nav-megamenu__spotlight-img-wrap {
+  width: 110px;
+  height: 140px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #EAE4DA;
+}
+.nav-megamenu__spotlight-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.nav-megamenu__spotlight-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.nav-megamenu__spotlight-info strong {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 19px;
+  font-weight: 400;
+  color: #1E1B18;
+  line-height: 1.25;
+}
+.nav-megamenu__spotlight-info span {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 13.5px;
+  color: #6E5A49;
+}
+.nav-megamenu__action-arrow {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #1E1B18;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+/* Hale Full-Bleed Hero */
+.hale-hero {
+  position: relative;
+  width: 100%;
+  height: 88vh;
+  min-height: 620px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hale-hero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.9);
+}
+.hale-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20,18,16,0.3) 0%, rgba(20,18,16,0.48) 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 3.5rem var(--gutter);
+  color: #FAF8F4;
+}
+.hale-hero__captions {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Spectral', Georgia, serif;
+  font-style: italic;
+  font-size: 17.5px;
+  letter-spacing: 0.04em;
+  color: rgba(250, 248, 244, 0.9);
+}
+.hale-hero__center-title {
+  text-align: center;
+  max-width: 720px;
+  margin: auto auto 2.5rem auto;
+}
+.hale-hero__eyebrow {
+  display: block;
+  font-size: 10.5px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: rgba(250, 248, 244, 0.78);
+  margin-bottom: 14px;
+}
+.hale-hero__title {
+  font-family: 'Cormorant Garamond', 'Spectral', serif;
+  font-size: clamp(2.8rem, 5.5vw, 4.8rem);
+  font-weight: 300;
+  line-height: 1.1;
+  color: #FAF8F4;
+  margin-bottom: 26px;
+  letter-spacing: 0.02em;
+}
+.hale-hero__cta {
+  display: inline-flex;
+  align-items: center;
+  background: transparent;
+  color: #FAF8F4;
+  border: 1px solid rgba(250, 248, 244, 0.65);
+  padding: 14px 32px;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.35s ease;
+}
+.hale-hero__cta:hover {
+  background: #FAF8F4;
+  color: #1E1B18;
+}
+
+/* Hale Manifesto */
+.hale-manifesto {
+  padding: 7.5rem var(--gutter);
+  background: #F4EFE7;
+  text-align: center;
+}
+.hale-manifesto__inner {
+  max-width: 880px;
+  margin: 0 auto;
+}
+.hale-manifesto__lead {
+  font-family: 'Cormorant Garamond', 'Spectral', Georgia, serif;
+  font-size: clamp(1.85rem, 2.8vw, 2.6rem);
+  font-weight: 300;
+  line-height: 1.45;
+  color: #1E1B18;
+  margin-bottom: 24px;
+  letter-spacing: 0.01em;
+}
+.hale-manifesto__sub {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #76726A;
+}
+
+/* Hale Shop by Category (5 Tall Cards) */
+.hale-categories {
+  padding: 6.5rem var(--gutter);
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+.hale-categories__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 3.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(30, 27, 24, 0.12);
+}
+.hale-categories__tabs {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.hale-cat-pill {
+  background: none;
+  border: none;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #76726A;
+  cursor: pointer;
+  padding: 6px 14px;
+  border-radius: 20px;
+  transition: all 0.25s ease;
+}
+.hale-cat-pill.active, .hale-cat-pill:hover {
+  color: #1E1B18;
+  background: rgba(30, 27, 24, 0.06);
+}
+.hale-categories__grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+.hale-cat-card {
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.hale-cat-card__media {
+  aspect-ratio: 2 / 3;
+  position: relative;
+  overflow: hidden;
+  background: #EAE4DA;
+}
+.hale-cat-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hale-cat-card:hover .hale-cat-card__media img {
+  transform: scale(1.06);
+}
+.hale-cat-card__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, rgba(20,18,16,0.72) 0%, rgba(20,18,16,0.15) 50%, transparent 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 22px 18px;
+  color: #FAF8F4;
+  transition: background 0.35s ease;
+}
+.hale-cat-card__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: #FAF8F4;
+  margin-bottom: 2px;
+}
+.hale-cat-card__sub {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 12.5px;
+  color: rgba(250, 248, 244, 0.82);
+  margin-bottom: 8px;
+}
+.hale-cat-card__link {
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #FAF8F4;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: all 0.3s ease;
+}
+.hale-cat-card:hover .hale-cat-card__link {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hale Material & Swatch Study */
+.hale-material-study {
+  background: #24181B;
+  color: #FAF8F4;
+  padding: 7.5rem var(--gutter);
+  margin-top: 3.5rem;
+}
+.hale-material-study__inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  text-align: center;
+}
+.hale-material-study__header {
+  max-width: 780px;
+  margin: 0 auto 4rem auto;
+}
+.hale-material-study__title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+  font-weight: 300;
+  line-height: 1.25;
+  color: #FAF8F4;
+  margin: 14px 0 16px 0;
+}
+.hale-material-study__copy {
+  font-family: 'Spectral', serif;
+  font-size: 16px;
+  line-height: 1.8;
+  color: rgba(250, 248, 244, 0.8);
+}
+.hale-swatch-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 24px;
+  margin-bottom: 3.5rem;
+}
+.hale-swatch-card {
+  background: rgba(250, 248, 244, 0.05);
+  border: 1px solid rgba(250, 248, 244, 0.12);
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.hale-swatch-card:hover {
+  background: rgba(250, 248, 244, 0.12);
+  border-color: rgba(250, 248, 244, 0.3);
+  transform: translateY(-3px);
+}
+.hale-swatch-card__dot-wrap {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.hale-swatch-dot {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  mix-blend-mode: screen;
+  filter: brightness(1.2);
+}
+.hale-swatch-tag {
+  font-size: 8.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(250, 248, 244, 0.6);
+  margin-bottom: 4px;
+}
+.hale-swatch-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18.5px;
+  font-weight: 400;
+  color: #FAF8F4;
+  margin-bottom: 4px;
+}
+.hale-swatch-origin {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: rgba(250, 248, 244, 0.68);
+}
+.hale-material-study__actions {
+  display: flex;
+  justify-content: center;
+}
+
+@media (max-width: 1024px) {
+  .hale-categories__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .hale-swatch-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .nav-megamenu--hale__inner {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+@media (max-width: 640px) {
+  .hale-categories__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hale-swatch-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
